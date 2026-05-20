@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using HarmonyLib;
 
-namespace ServerSyncModTemplate;
+namespace SecretRecipes;
 
 [HarmonyPatch(typeof(ZNet), nameof(ZNet.OnNewConnection))]
 public static class RegisterAndCheckVersion
@@ -10,14 +10,14 @@ public static class RegisterAndCheckVersion
     private static void Prefix(ZNetPeer peer, ref ZNet __instance)
     {
         // Register version check call
-        ServerSyncModTemplatePlugin.ServerSyncModTemplateLogger.LogDebug("Registering version RPC handler");
-        peer.m_rpc.Register($"{ServerSyncModTemplatePlugin.ModName}_VersionCheck", new Action<ZRpc, ZPackage>(RpcHandlers.RPC_ServerSyncModTemplate_Version));
+        SecretRecipesPlugin.PluginLogger.LogDebug("Registering version RPC handler");
+        peer.m_rpc.Register($"{SecretRecipesPlugin.ModName}_VersionCheck", new Action<ZRpc, ZPackage>(RpcHandlers.RPC_SecretRecipes_Version));
 
         // Make calls to check versions
-        ServerSyncModTemplatePlugin.ServerSyncModTemplateLogger.LogInfo("Invoking version check");
+        SecretRecipesPlugin.PluginLogger.LogInfo("Invoking version check");
         ZPackage zpackage = new();
-        zpackage.Write(ServerSyncModTemplatePlugin.ModVersion);
-        peer.m_rpc.Invoke($"{ServerSyncModTemplatePlugin.ModName}_VersionCheck", zpackage);
+        zpackage.Write(SecretRecipesPlugin.ModVersion);
+        peer.m_rpc.Invoke($"{SecretRecipesPlugin.ModName}_VersionCheck", zpackage);
     }
 }
 
@@ -28,14 +28,14 @@ public static class VerifyClient
     {
         if (!__instance.IsServer() || RpcHandlers.ValidatedPeers.Contains(rpc)) return true;
         // Disconnect peer if they didn't send mod version at all
-        ServerSyncModTemplatePlugin.ServerSyncModTemplateLogger.LogWarning($"Peer ({rpc.m_socket.GetHostName()}) never sent version or couldn't due to previous disconnect, disconnecting");
+        SecretRecipesPlugin.PluginLogger.LogWarning($"Peer ({rpc.m_socket.GetHostName()}) never sent version or couldn't due to previous disconnect, disconnecting");
         rpc.Invoke("Error", 3);
         return false; // Prevent calling underlying method
     }
 
     private static void Postfix(ZNet __instance)
     {
-        ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.instance.GetServerPeerID(), $"{ServerSyncModTemplatePlugin.ModName}RequestAdminSync", new ZPackage());
+        ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.instance.GetServerPeerID(), $"{SecretRecipesPlugin.ModName}RequestAdminSync", new ZPackage());
     }
 }
 
@@ -48,7 +48,7 @@ public class ShowConnectionError
         {
             __instance.m_connectionFailedError.fontSizeMax = 25;
             __instance.m_connectionFailedError.fontSizeMin = 15;
-            __instance.m_connectionFailedError.text += $"\n{ServerSyncModTemplatePlugin.ConnectionError}";
+            __instance.m_connectionFailedError.text += $"\n{SecretRecipesPlugin.ConnectionError}";
         }
     }
 }
@@ -60,7 +60,7 @@ public static class RemoveDisconnectedPeerFromVerified
     {
         if (!__instance.IsServer()) return;
         // Remove peer from validated list
-        ServerSyncModTemplatePlugin.ServerSyncModTemplateLogger.LogInfo($"Peer ({peer.m_rpc.m_socket.GetHostName()}) disconnected, removing from validated list");
+        SecretRecipesPlugin.PluginLogger.LogInfo($"Peer ({peer.m_rpc.m_socket.GetHostName()}) disconnected, removing from validated list");
         _ = RpcHandlers.ValidatedPeers.Remove(peer.m_rpc);
     }
 }
@@ -69,16 +69,16 @@ public static class RpcHandlers
 {
     public static readonly List<ZRpc> ValidatedPeers = new();
 
-    public static void RPC_ServerSyncModTemplate_Version(ZRpc rpc, ZPackage pkg)
+    public static void RPC_SecretRecipes_Version(ZRpc rpc, ZPackage pkg)
     {
         string? version = pkg.ReadString();
-        ServerSyncModTemplatePlugin.ServerSyncModTemplateLogger.LogInfo($"Version check, local: {ServerSyncModTemplatePlugin.ModVersion},  remote: {version}");
-        if (version != ServerSyncModTemplatePlugin.ModVersion)
+        SecretRecipesPlugin.PluginLogger.LogInfo($"Version check, local: {SecretRecipesPlugin.ModVersion},  remote: {version}");
+        if (version != SecretRecipesPlugin.ModVersion)
         {
-            ServerSyncModTemplatePlugin.ConnectionError = $"{ServerSyncModTemplatePlugin.ModName} Installed: {ServerSyncModTemplatePlugin.ModVersion}\n Needed: {version}";
+            SecretRecipesPlugin.ConnectionError = $"{SecretRecipesPlugin.ModName} Installed: {SecretRecipesPlugin.ModVersion}\n Needed: {version}";
             if (!ZNet.instance.IsServer()) return;
             // Different versions - force disconnect client from server
-            ServerSyncModTemplatePlugin.ServerSyncModTemplateLogger.LogWarning($"Peer ({rpc.m_socket.GetHostName()}) has incompatible version, disconnecting...");
+            SecretRecipesPlugin.PluginLogger.LogWarning($"Peer ({rpc.m_socket.GetHostName()}) has incompatible version, disconnecting...");
             rpc.Invoke("Error", 3);
         }
         else
@@ -86,12 +86,12 @@ public static class RpcHandlers
             if (!ZNet.instance.IsServer())
             {
                 // Enable mod on client if versions match
-                ServerSyncModTemplatePlugin.ServerSyncModTemplateLogger.LogInfo("Received same version from server!");
+                SecretRecipesPlugin.PluginLogger.LogInfo("Received same version from server!");
             }
             else
             {
                 // Add client to validated list
-                ServerSyncModTemplatePlugin.ServerSyncModTemplateLogger.LogInfo($"Adding peer ({rpc.m_socket.GetHostName()}) to validated list");
+                SecretRecipesPlugin.PluginLogger.LogInfo($"Adding peer ({rpc.m_socket.GetHostName()}) to validated list");
                 ValidatedPeers.Add(rpc);
             }
         }

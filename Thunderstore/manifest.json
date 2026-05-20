@@ -1,8 +1,8 @@
 {
-  "name": "ServerSyncModTemplate",
+  "name": "SecretRecipes",
   "version_number": "1.0.0",
-  "website_url": "https://discord.gg/pdHgy6Bsng",
-  "description": "Your mod description goes here. Do not forget to replace the icon.png file with your own. Must be 256x256. Your Readme.md file will be copied from the one in your project folder.",
+  "website_url": "",
+  "description": "Shows unknown Valheim recipes and build pieces as configurable masked previews without unlocking them early. Known materials and station info reveal gradually, while names, icons, descriptions, and hidden requirements stay secret until discovered.",
   "dependencies": [
     "denikson-BepInExPack_Valheim-5.4.2202"
   ]

@@ -11,22 +11,22 @@ using JetBrains.Annotations;
 using ServerSync;
 using UnityEngine;
 
-namespace ServerSyncModTemplate;
+namespace SecretRecipes;
 
 [BepInPlugin(ModGUID, ModName, ModVersion)]
-public class ServerSyncModTemplatePlugin : BaseUnityPlugin
+public class SecretRecipesPlugin : BaseUnityPlugin
 {
-    internal const string ModName = "ServerSyncModTemplate";
+    internal const string ModName = "SecretRecipes";
     internal const string ModVersion = "1.0.0";
-    internal const string Author = "{Azumatt}";
-    private const string ModGUID = $"{Author}.{ModName}";
+    internal const string Author = "sighsorry";
+    public const string ModGUID = $"{Author}.{ModName}";
     private static string ConfigFileName = $"{ModGUID}.cfg";
     private static string ConfigFileFullPath = Paths.ConfigPath + Path.DirectorySeparatorChar + ConfigFileName;
     internal static string ConnectionError = "";
     private readonly Harmony _harmony = new(ModGUID);
-    public static readonly ManualLogSource ServerSyncModTemplateLogger = BepInEx.Logging.Logger.CreateLogSource(ModName);
+    public static readonly ManualLogSource PluginLogger = BepInEx.Logging.Logger.CreateLogSource(ModName);
     private static readonly ConfigSync ConfigSync = new(ModGUID) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
-    private FileSystemWatcher _watcher;
+    private FileSystemWatcher? _watcher;
     private readonly object _reloadLock = new();
     private DateTime _lastConfigReloadTime;
     private const long RELOAD_DELAY = 10000000; // One second
@@ -49,6 +49,15 @@ public class ServerSyncModTemplatePlugin : BaseUnityPlugin
         _serverConfigLocked = config("1 - General", "Lock Configuration", Toggle.On, "If on, the configuration is locked and can be changed by server admins only.");
         _ = ConfigSync.AddLockingConfigEntry(_serverConfigLocked);
 
+        ShowUnknownCraftingRecipes = config("2 - Secret Recipes", "Show Unknown Crafting Recipes", Toggle.On, "Shows crafting recipes at the relevant crafting station before the recipe is fully unlocked.");
+        ShowUnknownBuildPieces = config("2 - Secret Recipes", "Show Unknown Build Pieces", Toggle.On, "Shows build pieces in build-piece tables before the piece is fully unlocked.");
+        RequireStationLevelForUnknownCraftingRecipes = config("2 - Secret Recipes", "Require Station Level For Unknown Crafting Recipes", Toggle.On, "If on, unknown crafting recipe previews are shown only when the current crafting station meets the recipe's required station level.");
+        RequireStationInteractionForUnlock = config("2 - Secret Recipes", "Require Station Interaction For Unlock", Toggle.On, "If on, recipes and pieces that require a crafting station unlock only after the player has interacted with the required station level. If off, Valheim's normal station discovery is used.");
+        RecipePreviewPrefabBlacklist = config("2 - Secret Recipes", "Recipe Preview Prefab Blacklist", "", "Comma-separated item prefab names whose unknown crafting recipe previews should never be shown. This does not hide recipes after they are actually unlocked. Example: ArmorIronLegs, SwordIron");
+        PiecePreviewPrefabBlacklist = config("2 - Secret Recipes", "Piece Preview Prefab Blacklist", "", "Comma-separated piece prefab names whose unknown build piece previews should never be shown. This does not hide pieces after they are actually unlocked. Example: piece_workbench_ext1, piece_chest");
+        UnknownNameText = config("3 - Display", "Unknown Name Text", "???", "Text shown for unknown recipe and piece names.");
+        UnknownDescriptionText = config("3 - Display", "Unknown Description Text", "Not enough info", "Text shown for unknown recipe and piece descriptions.");
+        UnknownRequirementText = config("3 - Display", "Unknown Requirement Text", "?", "Text shown for unknown requirement names, amounts, and station levels.");
 
         Assembly assembly = Assembly.GetExecutingAssembly();
         _harmony.PatchAll(assembly);
@@ -91,19 +100,19 @@ public class ServerSyncModTemplatePlugin : BaseUnityPlugin
         {
             if (!File.Exists(ConfigFileFullPath))
             {
-                ServerSyncModTemplateLogger.LogWarning("Config file does not exist. Skipping reload.");
+                PluginLogger.LogWarning("Config file does not exist. Skipping reload.");
                 return;
             }
 
             try
             {
-                ServerSyncModTemplateLogger.LogDebug("Reloading configuration...");
+                PluginLogger.LogDebug("Reloading configuration...");
                 SaveWithRespectToConfigSet(true);
-                ServerSyncModTemplateLogger.LogInfo("Configuration reload complete.");
+                PluginLogger.LogInfo("Configuration reload complete.");
             }
             catch (Exception ex)
             {
-                ServerSyncModTemplateLogger.LogError($"Error reloading configuration: {ex.Message}");
+                PluginLogger.LogError($"Error reloading configuration: {ex.Message}");
             }
         }
 
@@ -126,7 +135,7 @@ public class ServerSyncModTemplatePlugin : BaseUnityPlugin
         /*Localizer.OnLocalizationComplete += () =>
         {
             // Do something
-            ItemManagerModTemplateLogger.LogDebug("OnLocalizationComplete called");
+            PluginLogger.LogDebug("OnLocalizationComplete called");
         };*/
     }
 
@@ -134,6 +143,15 @@ public class ServerSyncModTemplatePlugin : BaseUnityPlugin
     #region ConfigOptions
 
     private static ConfigEntry<Toggle> _serverConfigLocked = null!;
+    internal static ConfigEntry<Toggle> ShowUnknownCraftingRecipes = null!;
+    internal static ConfigEntry<Toggle> ShowUnknownBuildPieces = null!;
+    internal static ConfigEntry<Toggle> RequireStationLevelForUnknownCraftingRecipes = null!;
+    internal static ConfigEntry<Toggle> RequireStationInteractionForUnlock = null!;
+    internal static ConfigEntry<string> RecipePreviewPrefabBlacklist = null!;
+    internal static ConfigEntry<string> PiecePreviewPrefabBlacklist = null!;
+    internal static ConfigEntry<string> UnknownNameText = null!;
+    internal static ConfigEntry<string> UnknownDescriptionText = null!;
+    internal static ConfigEntry<string> UnknownRequirementText = null!;
 
     private ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description, bool synchronizedSetting = true)
     {
@@ -189,16 +207,16 @@ public static class KeyboardExtensions
 
 public static class ToggleExtentions
 {
-    extension(ServerSyncModTemplatePlugin.Toggle value)
+    extension(SecretRecipesPlugin.Toggle value)
     {
         public bool IsOn()
         {
-            return value == ServerSyncModTemplatePlugin.Toggle.On;
+            return value == SecretRecipesPlugin.Toggle.On;
         }
 
         public bool IsOff()
         {
-            return value == ServerSyncModTemplatePlugin.Toggle.Off;
+            return value == SecretRecipesPlugin.Toggle.Off;
         }
     }
 }
