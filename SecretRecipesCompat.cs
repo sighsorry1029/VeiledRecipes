@@ -16,6 +16,30 @@ public static class SecretRecipesCompat
 
     public static string UnknownRequirementText => SecretRecipeState.UnknownRequirementText;
 
+    public static bool GroupUnknownRecipePreviewsBelowKnownRecipes => SecretRecipeState.GroupUnknownRecipePreviewsBelowKnownRecipes;
+
+    public static SecretRecipeVisibilityState GetRecipeVisibilityState(Recipe recipe)
+    {
+        return GetRecipeVisibilityState(Player.m_localPlayer, recipe);
+    }
+
+    public static SecretRecipeVisibilityState GetRecipeVisibilityState(Player player, Recipe recipe)
+    {
+        return player != null && recipe != null
+            ? SecretRecipeState.GetRecipeVisibilityState(player, recipe)
+            : SecretRecipeVisibilityState.Hidden;
+    }
+
+    public static bool IsUnknownRecipePreview(Recipe recipe)
+    {
+        return IsUnknownRecipePreview(Player.m_localPlayer, recipe);
+    }
+
+    public static bool IsUnknownRecipePreview(Player player, Recipe recipe)
+    {
+        return player != null && recipe != null && SecretRecipeState.IsUnknownRecipePreview(player, recipe);
+    }
+
     public static bool ShouldMaskRecipe(Recipe recipe)
     {
         return ShouldMaskRecipe(Player.m_localPlayer, recipe);

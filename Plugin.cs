@@ -29,7 +29,7 @@ public class SecretRecipesPlugin : BaseUnityPlugin
     private FileSystemWatcher? _watcher;
     private readonly object _reloadLock = new();
     private DateTime _lastConfigReloadTime;
-    private const long RELOAD_DELAY = 10000000; // One second
+    private static readonly TimeSpan ConfigReloadDebounce = TimeSpan.FromSeconds(1);
 
     public enum Toggle
     {
@@ -52,12 +52,18 @@ public class SecretRecipesPlugin : BaseUnityPlugin
         ShowUnknownCraftingRecipes = config("2 - Secret Recipes", "Show Unknown Crafting Recipes", Toggle.On, "Shows crafting recipes at the relevant crafting station before the recipe is fully unlocked.");
         ShowUnknownBuildPieces = config("2 - Secret Recipes", "Show Unknown Build Pieces", Toggle.On, "Shows build pieces in build-piece tables before the piece is fully unlocked.");
         RequireStationLevelForUnknownCraftingRecipes = config("2 - Secret Recipes", "Require Station Level For Unknown Crafting Recipes", Toggle.On, "If on, unknown crafting recipe previews are shown only when the current crafting station meets the recipe's required station level.");
-        RequireStationInteractionForUnlock = config("2 - Secret Recipes", "Require Station Interaction For Unlock", Toggle.On, "If on, recipes and pieces that require a crafting station unlock only after the player has interacted with the required station level. If off, Valheim's normal station discovery is used.");
+        RequireStationInteractionForRecipeUnlock = config("2 - Secret Recipes", "Require Station Interaction For Recipe Unlock", Toggle.On, "If on, recipes that require a crafting station unlock only after the player has interacted with the required station level. If off, Valheim's normal station discovery behavior is used for recipe station knowledge.");
+        EnableStationProximityDiscovery = config("2 - Secret Recipes", "Enable Station Proximity Discovery", Toggle.On, "If on, Valheim's normal crafting station discovery radius is used. If off, walking near a crafting station does not discover it; interacting with the station is required.");
         RecipePreviewPrefabBlacklist = config("2 - Secret Recipes", "Recipe Preview Prefab Blacklist", "", "Comma-separated item prefab names whose unknown crafting recipe previews should never be shown. This does not hide recipes after they are actually unlocked. Example: ArmorIronLegs, SwordIron");
         PiecePreviewPrefabBlacklist = config("2 - Secret Recipes", "Piece Preview Prefab Blacklist", "", "Comma-separated piece prefab names whose unknown build piece previews should never be shown. This does not hide pieces after they are actually unlocked. Example: piece_workbench_ext1, piece_chest");
+        RequirementPreviewPrefabBlacklist = config("2 - Secret Recipes", "Requirement Preview Prefab Blacklist", "SwordCheat, SledgeCheat", "Comma-separated ingredient/resource prefab names that prevent unknown crafting recipe and build-piece previews from being shown when required by that recipe or piece. This does not hide anything after it is actually unlocked.");
         UnknownNameText = config("3 - Display", "Unknown Name Text", "???", "Text shown for unknown recipe and piece names.");
         UnknownDescriptionText = config("3 - Display", "Unknown Description Text", "Not enough info", "Text shown for unknown recipe and piece descriptions.");
         UnknownRequirementText = config("3 - Display", "Unknown Requirement Text", "?", "Text shown for unknown requirement names, amounts, and station levels.");
+        GroupUnknownRecipePreviewsBelowKnownRecipes = config("3 - Display", "Group Unknown Recipe Previews Below Known Recipes", true, "If enabled, unknown crafting recipe previews are grouped below actually unlocked recipes in crafting station recipe lists.", synchronizedSetting: false);
+        ShowRecipeUnlockNotifications = config("4 - Client Notifications", "Show Recipe Unlock Notifications", true, "Shows Valheim's unlock popup when a crafting recipe is learned.", synchronizedSetting: false);
+        ShowPieceUnlockNotifications = config("4 - Client Notifications", "Show Piece Unlock Notifications", false, "Shows Valheim's unlock popup when a build piece or dish is learned.", synchronizedSetting: false);
+        ShowSkillLevelUpNotificationAndEffect = config("4 - Client Notifications", "Show Skill Level Up Notification/Effect", true, "Shows the skill level-up message and VFX/SFX. When disabled, all $msg_skillup alarms and Player.OnSkillLevelup effects are hidden.", synchronizedSetting: false);
 
         Assembly assembly = Assembly.GetExecutingAssembly();
         _harmony.PatchAll(assembly);
@@ -90,8 +96,7 @@ public class SecretRecipesPlugin : BaseUnityPlugin
     private void ReadConfigValues(object sender, FileSystemEventArgs e)
     {
         DateTime now = DateTime.Now;
-        long time = now.Ticks - _lastConfigReloadTime.Ticks;
-        if (time < RELOAD_DELAY)
+        if (now - _lastConfigReloadTime < ConfigReloadDebounce)
         {
             return;
         }
@@ -146,12 +151,18 @@ public class SecretRecipesPlugin : BaseUnityPlugin
     internal static ConfigEntry<Toggle> ShowUnknownCraftingRecipes = null!;
     internal static ConfigEntry<Toggle> ShowUnknownBuildPieces = null!;
     internal static ConfigEntry<Toggle> RequireStationLevelForUnknownCraftingRecipes = null!;
-    internal static ConfigEntry<Toggle> RequireStationInteractionForUnlock = null!;
+    internal static ConfigEntry<Toggle> RequireStationInteractionForRecipeUnlock = null!;
+    internal static ConfigEntry<Toggle> EnableStationProximityDiscovery = null!;
     internal static ConfigEntry<string> RecipePreviewPrefabBlacklist = null!;
     internal static ConfigEntry<string> PiecePreviewPrefabBlacklist = null!;
+    internal static ConfigEntry<string> RequirementPreviewPrefabBlacklist = null!;
     internal static ConfigEntry<string> UnknownNameText = null!;
     internal static ConfigEntry<string> UnknownDescriptionText = null!;
     internal static ConfigEntry<string> UnknownRequirementText = null!;
+    internal static ConfigEntry<bool> GroupUnknownRecipePreviewsBelowKnownRecipes = null!;
+    internal static ConfigEntry<bool> ShowRecipeUnlockNotifications = null!;
+    internal static ConfigEntry<bool> ShowPieceUnlockNotifications = null!;
+    internal static ConfigEntry<bool> ShowSkillLevelUpNotificationAndEffect = null!;
 
     private ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description, bool synchronizedSetting = true)
     {

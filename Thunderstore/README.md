@@ -1,92 +1,139 @@
 # SecretRecipes
 
-SecretRecipes changes Valheim's discovery UI without granting recipes or build pieces early.
+SecretRecipes changes how Valheim presents unknown recipes and build pieces. Instead of keeping every undiscovered recipe completely invisible, it can show configurable masked previews: the player learns that something exists, while names, icons, descriptions, hidden materials, and hidden station requirements stay secret until the real unlock conditions are met.
 
-Instead of hiding every recipe until the player has discovered every ingredient and station requirement, the mod can show unknown entries as masked previews. The player can see that something exists, but the important details stay secret until Valheim's real unlock conditions are met.
+The mod does not grant recipes early. Unknown previews cannot be crafted or placed.
 
-## What It Does
+## Strengths
 
-- Adds optional masked previews for unknown crafting recipes.
-- Adds optional masked previews for unknown hammer/build pieces.
-- Keeps vanilla recipe and piece unlock rules intact.
-- Blocks crafting and placement for previews that are not actually unlocked.
-- Reveals known requirements gradually, such as materials the player has already discovered.
-- Can require interaction with the correct crafting station level before a recipe or piece is actually unlocked.
-- Supports synced server configuration through ServerSync.
+- Shows discovery progress without spoiling full recipes.
+- Keeps Valheim's actual recipe and piece unlock rules intact.
+- Masks crafting recipes, build pieces, item icons, descriptions, requirements, station levels, tooltips, and pinned tooltip content where supported.
+- Reveals known materials and station information gradually.
+- Blocks crafting and placement for entries that are only previews.
+- Supports strict station discovery rules for recipe unlocks.
+- Provides server-synced blacklist controls for item outputs, build pieces, and requirement ingredients.
+- Offers client-side options for recipe grouping and noisy notifications.
+- Exposes a compatibility API for custom crafting UI mods.
 
-## Crafting Recipes
+## Crafting Recipe Previews
 
-When an unknown recipe preview is shown, SecretRecipes masks the recipe's identity:
+When a crafting recipe is visible only as an unknown preview:
 
-- The recipe list icon is shown as a black silhouette.
-- The recipe name is replaced with the configured unknown name text.
-- The selected recipe icon is shown as a black silhouette.
-- The recipe description is replaced with the configured unknown description text.
-- Unknown material names and amounts are replaced with the configured unknown requirement text.
-- Unknown station level information is replaced with the configured unknown requirement text.
-- Known materials and known station levels are displayed normally.
+- The recipe list icon is rendered as a black silhouette.
+- The recipe name is replaced by `Unknown Name Text`.
+- The selected recipe icon is rendered as a black silhouette.
+- The recipe description is replaced by `Unknown Description Text`.
+- Unknown requirement names and amounts are replaced by `Unknown Requirement Text`.
+- Unknown station level text is replaced by `Unknown Requirement Text`.
+- Requirements the player already knows are shown normally.
+- The craft button is disabled and crafting is blocked.
 
-The recipe is still not unlocked. The craft button is blocked until the player has actually learned the recipe.
+Recipe previews can be grouped below actually unlocked recipes so normal crafting remains easy to scan.
 
-## Build Pieces
+## Build Piece Previews
 
-Unknown build pieces can also appear in build-piece tables as masked entries.
+Unknown build pieces can appear in hammer/build-piece tables as masked entries.
 
-Until a build piece is actually unlocked:
+Until the piece is actually unlocked:
 
-- The piece icon is shown as a black silhouette.
+- The piece icon is rendered as a black silhouette.
 - The piece name and description are hidden.
 - Unknown requirements are masked.
-- The build ghost is blocked and the piece cannot be placed.
+- The placement ghost is blocked.
+- Placement is denied with Valheim's missing requirement message.
 
-Once Valheim considers the piece known, it appears and behaves normally.
+Once Valheim considers the piece known, SecretRecipes stops masking it.
 
-## Station Interaction
+## Station Discovery
 
-Valheim normally unlocks station-gated recipes based on known materials and known stations. SecretRecipes can make that stricter.
+Valheim normally discovers crafting stations when the player walks close enough to them. That station awareness can affect recipe and piece unlocks.
 
-When `Require Station Interaction For Unlock` is enabled, recipes and pieces that require a crafting station unlock only after the player has interacted with the required station level. For example, a forge level 2 recipe can remain unknown until the player has actually used a forge at level 2.
+SecretRecipes separates two concepts:
 
-This is separate from preview visibility. A preview can be visible while the real recipe remains locked.
+- `Require Station Interaction For Recipe Unlock` controls whether station-gated crafting recipes require direct interaction with the required station level before the recipe can truly unlock.
+- `Enable Station Proximity Discovery` controls whether walking near a crafting station discovers it through Valheim's normal proximity behavior.
 
-## Config
+Build pieces use Valheim's normal station awareness. If proximity discovery is enabled, walking near a station can help piece unlocks. If proximity discovery is disabled, interacting with the station is required before that station is known.
 
-All gameplay-relevant options are synced with ServerSync when server configuration is locked.
+## Server-Synced Config
+
+These options are synced through ServerSync when configuration locking is enabled.
+
+- `Lock Configuration`
+  Locks synced config so only the server/admin config controls gameplay behavior.
 
 - `Show Unknown Crafting Recipes`
-  Shows masked crafting recipe previews in crafting station UIs.
+  Enables masked crafting recipe previews at relevant crafting stations.
+  Default: `On`
 
 - `Show Unknown Build Pieces`
-  Shows masked build-piece previews in hammer/build-piece tables.
+  Enables masked build-piece previews in build-piece tables.
+  Default: `On`
 
 - `Require Station Level For Unknown Crafting Recipes`
-  When enabled, a masked crafting recipe preview only appears if the current crafting station meets the recipe's required station level. For example, a forge level 2 recipe will not appear at a forge level 1 unless it has already been truly unlocked.
+  If enabled, unknown crafting recipe previews only appear when the current crafting station meets the required station level. A forge level 2 recipe will not appear at a forge level 1 unless it is already truly unlocked.
+  Default: `On`
 
-- `Require Station Interaction For Unlock`
-  When enabled, station-gated recipes and pieces unlock only after the player has interacted with the required crafting station level. When disabled, Valheim's normal station discovery behavior is used.
+- `Require Station Interaction For Recipe Unlock`
+  If enabled, station-gated crafting recipes unlock only after the player has interacted with the required crafting station level. If disabled, recipe station knowledge follows Valheim's normal known station behavior.
+  Default: `On`
+
+- `Enable Station Proximity Discovery`
+  If enabled, walking near a crafting station discovers it normally. If disabled, proximity discovery is blocked and station knowledge requires interaction.
+  Default: `On`
 
 - `Recipe Preview Prefab Blacklist`
-  Comma-separated item prefab names whose masked recipe previews should never appear. This only hides unknown previews; it does not hide recipes after they are actually unlocked.
+  Item prefab names whose unknown crafting recipe previews should never appear. This affects preview visibility only; unlocked recipes still appear normally.
+  Default: empty
 
 - `Piece Preview Prefab Blacklist`
-  Comma-separated piece prefab names whose masked build-piece previews should never appear. This only hides unknown previews; it does not hide pieces after they are actually unlocked.
+  Piece prefab names whose unknown build-piece previews should never appear. This affects preview visibility only; unlocked pieces still appear normally.
+  Default: empty
+
+- `Requirement Preview Prefab Blacklist`
+  Ingredient/resource prefab names that prevent unknown previews from appearing for any recipe or piece that requires them. This is useful for cheat, admin, or hidden resource prefabs.
+  Default: `SwordCheat, SledgeCheat`
 
 - `Unknown Name Text`
-  Text used when a recipe, piece, or requirement name is hidden.
+  Text shown when a recipe, piece, material, or station name is hidden.
+  Default: `???`
 
 - `Unknown Description Text`
-  Text used when a recipe or piece description is hidden.
+  Text shown when a recipe or piece description is hidden.
+  Default: `Not enough info`
 
 - `Unknown Requirement Text`
-  Text used when a required amount or station level is hidden.
+  Text shown when an amount or station level is hidden.
+  Default: `?`
+
+## Client-Side Config
+
+These options are not synced. Each player can choose their own UI behavior.
+
+- `Group Unknown Recipe Previews Below Known Recipes`
+  Groups masked crafting recipe previews below actually unlocked recipes in crafting station recipe lists.
+  Default: `true`
+
+- `Show Recipe Unlock Notifications`
+  Shows or hides Valheim's recipe unlock popup.
+  Default: `true`
+
+- `Show Piece Unlock Notifications`
+  Shows or hides Valheim's build piece and dish unlock popup.
+  Default: `false`
+
+- `Show Skill Level Up Notification/Effect`
+  Shows or hides skill level-up messages and VFX/SFX, including the first time a skill reaches level 1.
+  Default: `true`
 
 ## Blacklist Format
 
-Prefab blacklist entries are matched case-insensitively. The mod also trims whitespace and ignores a trailing `(Clone)` suffix.
+All prefab blacklist entries are case-insensitive. Whitespace is trimmed, and a trailing `(Clone)` suffix is ignored.
 
-You can separate entries with commas, semicolons, pipes, or line breaks.
+Entries can be separated by commas, semicolons, pipes, or line breaks.
 
-Example:
+Output blacklists match the item or piece being previewed:
 
 ```text
 ArmorIronLegs, SwordIron
@@ -97,11 +144,17 @@ piece_workbench_ext1
 piece_chest
 ```
 
-## Compatibility
+The requirement blacklist matches ingredient/resource prefabs used by the recipe or piece:
 
-SecretRecipes patches Valheim's vanilla crafting and build-piece UI. Mods that draw their own recipe UI from raw `Recipe`, `RecipeDataPair`, or `ItemData` data may need to call the SecretRecipes compatibility API and mask their own custom controls.
+```text
+SwordCheat, SledgeCheat
+```
 
-The public API is available through:
+## Compatibility API
+
+SecretRecipes patches Valheim's vanilla crafting and build-piece UI. Mods that draw their own recipe UI may need to call the public API and mask their own controls.
+
+API type:
 
 ```csharp
 SecretRecipes.SecretRecipesCompat
@@ -110,9 +163,17 @@ SecretRecipes.SecretRecipesCompat
 Useful members include:
 
 - `PluginGuid`
+- `PluginName`
+- `PluginVersion`
+- `Author`
 - `UnknownNameText`
 - `UnknownDescriptionText`
 - `UnknownRequirementText`
+- `GroupUnknownRecipePreviewsBelowKnownRecipes`
+- `GetRecipeVisibilityState(recipe)`
+- `GetRecipeVisibilityState(player, recipe)`
+- `IsUnknownRecipePreview(recipe)`
+- `IsUnknownRecipePreview(player, recipe)`
 - `ShouldMaskRecipe(recipe)`
 - `ShouldMaskRecipe(player, recipe)`
 - `ShouldMaskRecipePair(pair)`
@@ -128,7 +189,7 @@ Useful members include:
 - `KnowsPieceStationRequirement(piece)`
 - `KnowsPieceStationRequirement(player, piece)`
 
-For soft dependencies, check for the BepInEx plugin GUID:
+Soft dependency GUID:
 
 ```text
 sighsorry.SecretRecipes
@@ -136,4 +197,4 @@ sighsorry.SecretRecipes
 
 ## Notes
 
-SecretRecipes is designed to reveal possibility, not grant power. If a recipe or piece appears as a preview, the player still needs to satisfy the actual discovery requirements before crafting or building it.
+SecretRecipes is meant to reveal possibility, not grant power. If an entry is only a preview, the player still needs to satisfy Valheim's real discovery rules before crafting or building it.
