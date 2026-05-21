@@ -1,8 +1,16 @@
-# SecretRecipes
+# VeiledRecipes
 
-SecretRecipes changes how Valheim presents unknown recipes and build pieces. Instead of keeping every undiscovered recipe completely invisible, it can show configurable masked previews: the player learns that something exists, while names, icons, descriptions, hidden materials, and hidden station requirements stay secret until the real unlock conditions are met.
+VeiledRecipes changes how Valheim presents unknown recipes and build pieces. Instead of keeping every undiscovered recipe completely invisible, it can show configurable masked previews: the player learns that something exists, while names, icons, descriptions, hidden materials, and hidden station requirements stay secret until the real unlock conditions are met.
 
 The mod does not grant recipes early. Unknown previews cannot be crafted or placed.
+
+![](https://i.ibb.co/fVF9LcWq/Screenshot-2026-05-21-215826.png)
+![](https://i.ibb.co/RpBF0FLq/Screenshot-2026-05-21-215258.png)
+![](https://i.ibb.co/MD05vpz0/Screenshot-2026-05-21-215238.png)
+![](https://i.ibb.co/chcXxxgp/Screenshot-2026-05-21-221859.png)
+![](https://i.ibb.co/tMV4ryLM/Screenshot-2026-05-21-221754.png)
+![](https://i.ibb.co/KzF9wfMy/Screenshot-2026-05-21-221642.png)
+![](https://i.ibb.co/5XDR5gkR/Screenshot-2026-05-21-215857.png)
 
 ## Strengths
 
@@ -43,13 +51,13 @@ Until the piece is actually unlocked:
 - The placement ghost is blocked.
 - Placement is denied with Valheim's missing requirement message.
 
-Once Valheim considers the piece known, SecretRecipes stops masking it.
+Once Valheim considers the piece known, VeiledRecipes stops masking it.
 
 ## Station Discovery
 
 Valheim normally discovers crafting stations when the player walks close enough to them. That station awareness can affect recipe and piece unlocks.
 
-SecretRecipes separates two concepts:
+VeiledRecipes separates two concepts:
 
 - `Require Station Interaction For Recipe Unlock` controls whether station-gated crafting recipes require direct interaction with the required station level before the recipe can truly unlock.
 - `Enable Station Proximity Discovery` controls whether walking near a crafting station discovers it through Valheim's normal proximity behavior.
@@ -152,12 +160,12 @@ SwordCheat, SledgeCheat
 
 ## Compatibility API
 
-SecretRecipes patches Valheim's vanilla crafting and build-piece UI. Mods that draw their own recipe UI may need to call the public API and mask their own controls.
+VeiledRecipes patches Valheim's vanilla crafting and build-piece UI. Mods that draw their own recipe UI may need to call the public API and mask their own controls.
 
 API type:
 
 ```csharp
-SecretRecipes.SecretRecipesCompat
+VeiledRecipes.VeiledRecipesCompat
 ```
 
 Useful members include:
@@ -192,9 +200,13 @@ Useful members include:
 Soft dependency GUID:
 
 ```text
-sighsorry.SecretRecipes
+sighsorry.VeiledRecipes
 ```
 
 ## Notes
 
-SecretRecipes is meant to reveal possibility, not grant power. If an entry is only a preview, the player still needs to satisfy Valheim's real discovery rules before crafting or building it.
+VeiledRecipes is meant to reveal possibility, not grant power. If an entry is only a preview, the player still needs to satisfy Valheim's real discovery rules before crafting or building it.
+
+## Git
+
+https://github.com/sighsorry1029/SecretRecipes

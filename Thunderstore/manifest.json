@@ -1,7 +1,7 @@
 {
-  "name": "SecretRecipes",
+  "name": "VeiledRecipes",
   "version_number": "1.0.0",
-  "website_url": "",
+  "website_url": "https://github.com/sighsorry1029/SecretRecipes",
   "description": "Shows undiscovered recipes and build pieces as masked previews without early unlocks. Reveals known materials/station info gradually, blocks crafting and placement until learned, with synced discovery/blacklist configs and notification controls.",
   "dependencies": [
     "denikson-BepInExPack_Valheim-5.4.2202"

@@ -1,33 +1,33 @@
-namespace SecretRecipes;
+namespace VeiledRecipes;
 
-public static class SecretRecipesCompat
+public static class VeiledRecipesCompat
 {
-    public const string PluginGuid = SecretRecipesPlugin.ModGUID;
+    public const string PluginGuid = VeiledRecipesPlugin.ModGUID;
 
-    public const string PluginName = SecretRecipesPlugin.ModName;
+    public const string PluginName = VeiledRecipesPlugin.ModName;
 
-    public const string PluginVersion = SecretRecipesPlugin.ModVersion;
+    public const string PluginVersion = VeiledRecipesPlugin.ModVersion;
 
-    public const string Author = SecretRecipesPlugin.Author;
+    public const string Author = VeiledRecipesPlugin.Author;
 
-    public static string UnknownNameText => SecretRecipeState.UnknownNameText;
+    public static string UnknownNameText => VeiledRecipeState.UnknownNameText;
 
-    public static string UnknownDescriptionText => SecretRecipeState.UnknownDescriptionText;
+    public static string UnknownDescriptionText => VeiledRecipeState.UnknownDescriptionText;
 
-    public static string UnknownRequirementText => SecretRecipeState.UnknownRequirementText;
+    public static string UnknownRequirementText => VeiledRecipeState.UnknownRequirementText;
 
-    public static bool GroupUnknownRecipePreviewsBelowKnownRecipes => SecretRecipeState.GroupUnknownRecipePreviewsBelowKnownRecipes;
+    public static bool GroupUnknownRecipePreviewsBelowKnownRecipes => VeiledRecipeState.GroupUnknownRecipePreviewsBelowKnownRecipes;
 
-    public static SecretRecipeVisibilityState GetRecipeVisibilityState(Recipe recipe)
+    public static VeiledRecipeVisibilityState GetRecipeVisibilityState(Recipe recipe)
     {
         return GetRecipeVisibilityState(Player.m_localPlayer, recipe);
     }
 
-    public static SecretRecipeVisibilityState GetRecipeVisibilityState(Player player, Recipe recipe)
+    public static VeiledRecipeVisibilityState GetRecipeVisibilityState(Player player, Recipe recipe)
     {
         return player != null && recipe != null
-            ? SecretRecipeState.GetRecipeVisibilityState(player, recipe)
-            : SecretRecipeVisibilityState.Hidden;
+            ? VeiledRecipeState.GetRecipeVisibilityState(player, recipe)
+            : VeiledRecipeVisibilityState.Hidden;
     }
 
     public static bool IsUnknownRecipePreview(Recipe recipe)
@@ -37,7 +37,7 @@ public static class SecretRecipesCompat
 
     public static bool IsUnknownRecipePreview(Player player, Recipe recipe)
     {
-        return player != null && recipe != null && SecretRecipeState.IsUnknownRecipePreview(player, recipe);
+        return player != null && recipe != null && VeiledRecipeState.IsUnknownRecipePreview(player, recipe);
     }
 
     public static bool ShouldMaskRecipe(Recipe recipe)
@@ -47,7 +47,7 @@ public static class SecretRecipesCompat
 
     public static bool ShouldMaskRecipe(Player player, Recipe recipe)
     {
-        return player != null && recipe != null && !SecretRecipeState.IsRecipeActuallyKnown(player, recipe);
+        return player != null && recipe != null && !VeiledRecipeState.IsRecipeActuallyKnown(player, recipe);
     }
 
     public static bool ShouldMaskRecipePair(InventoryGui.RecipeDataPair pair)
@@ -62,7 +62,7 @@ public static class SecretRecipesCompat
 
     public static bool IsRecipeActuallyKnown(Player player, Recipe recipe)
     {
-        return player != null && recipe != null && SecretRecipeState.IsRecipeActuallyKnown(player, recipe);
+        return player != null && recipe != null && VeiledRecipeState.IsRecipeActuallyKnown(player, recipe);
     }
 
     public static bool ShouldMaskPiece(Piece piece)
@@ -72,12 +72,12 @@ public static class SecretRecipesCompat
 
     public static bool ShouldMaskPiece(Player player, Piece piece)
     {
-        return player != null && piece != null && !SecretRecipeState.IsPieceActuallyKnown(player, piece);
+        return player != null && piece != null && !VeiledRecipeState.IsPieceActuallyKnown(player, piece);
     }
 
     public static bool IsPieceActuallyKnown(Player player, Piece piece)
     {
-        return player != null && piece != null && SecretRecipeState.IsPieceActuallyKnown(player, piece);
+        return player != null && piece != null && VeiledRecipeState.IsPieceActuallyKnown(player, piece);
     }
 
     public static bool IsMaterialKnown(Piece.Requirement requirement)
@@ -87,7 +87,7 @@ public static class SecretRecipesCompat
 
     public static bool IsMaterialKnown(Player player, Piece.Requirement requirement)
     {
-        return player != null && requirement != null && SecretRecipeState.IsMaterialKnown(player, requirement);
+        return player != null && requirement != null && VeiledRecipeState.IsMaterialKnown(player, requirement);
     }
 
     public static bool KnowsRecipeStationRequirement(Recipe recipe, int quality)
@@ -97,7 +97,7 @@ public static class SecretRecipesCompat
 
     public static bool KnowsRecipeStationRequirement(Player player, Recipe recipe, int quality)
     {
-        return player != null && recipe != null && SecretRecipeState.KnowsRecipeStationRequirement(player, recipe, quality);
+        return player != null && recipe != null && VeiledRecipeState.KnowsRecipeStationRequirement(player, recipe, quality);
     }
 
     public static bool KnowsPieceStationRequirement(Piece piece)
@@ -107,6 +107,6 @@ public static class SecretRecipesCompat
 
     public static bool KnowsPieceStationRequirement(Player player, Piece piece)
     {
-        return player != null && piece != null && SecretRecipeState.KnowsPieceStationRequirement(player, piece);
+        return player != null && piece != null && VeiledRecipeState.KnowsPieceStationRequirement(player, piece);
     }
 }

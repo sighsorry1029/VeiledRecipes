@@ -1,8 +1,8 @@
-namespace SecretRecipes;
+namespace VeiledRecipes;
 
-internal static class SecretRecipeConstants
+internal static class VeiledRecipeConstants
 {
-    internal const string StationInteractionPrefix = "SecretRecipes.InteractedStation.";
+    internal const string StationInteractionPrefix = "VeiledRecipes.InteractedStation.";
     internal const string UnknownNameFallback = "???";
     internal const string UnknownDescriptionFallback = "Not enough info";
     internal const string UnknownRequirementFallback = "?";

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using BepInEx.Configuration;
 
-namespace SecretRecipes;
+namespace VeiledRecipes;
 
-internal static partial class SecretRecipeState
+internal static partial class VeiledRecipeState
 {
     private static string _recipePreviewPrefabBlacklistRaw = "";
     private static string _piecePreviewPrefabBlacklistRaw = "";
@@ -36,7 +36,7 @@ internal static partial class SecretRecipeState
     private static HashSet<string> GetRecipePreviewPrefabBlacklist()
     {
         return GetPrefabBlacklist(
-            SecretRecipesPlugin.RecipePreviewPrefabBlacklist,
+            VeiledRecipesPlugin.RecipePreviewPrefabBlacklist,
             ref _recipePreviewPrefabBlacklistRaw,
             ref _recipePreviewPrefabBlacklist);
     }
@@ -44,7 +44,7 @@ internal static partial class SecretRecipeState
     private static HashSet<string> GetPiecePreviewPrefabBlacklist()
     {
         return GetPrefabBlacklist(
-            SecretRecipesPlugin.PiecePreviewPrefabBlacklist,
+            VeiledRecipesPlugin.PiecePreviewPrefabBlacklist,
             ref _piecePreviewPrefabBlacklistRaw,
             ref _piecePreviewPrefabBlacklist);
     }
@@ -80,7 +80,7 @@ internal static partial class SecretRecipeState
     private static HashSet<string> GetRequirementPreviewPrefabBlacklist()
     {
         return GetPrefabBlacklist(
-            SecretRecipesPlugin.RequirementPreviewPrefabBlacklist,
+            VeiledRecipesPlugin.RequirementPreviewPrefabBlacklist,
             ref _requirementPreviewPrefabBlacklistRaw,
             ref _requirementPreviewPrefabBlacklist);
     }
@@ -95,7 +95,7 @@ internal static partial class SecretRecipeState
 
         cachedRaw = raw;
         cached = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (string token in raw.Split(SecretRecipeConstants.PrefabBlacklistSeparators, StringSplitOptions.RemoveEmptyEntries))
+        foreach (string token in raw.Split(VeiledRecipeConstants.PrefabBlacklistSeparators, StringSplitOptions.RemoveEmptyEntries))
         {
             string prefabName = NormalizePrefabName(token);
             if (!string.IsNullOrEmpty(prefabName))
@@ -129,9 +129,9 @@ internal static partial class SecretRecipeState
             return "";
         }
 
-        if (normalized.EndsWith(SecretRecipeConstants.CloneSuffix, StringComparison.OrdinalIgnoreCase))
+        if (normalized.EndsWith(VeiledRecipeConstants.CloneSuffix, StringComparison.OrdinalIgnoreCase))
         {
-            normalized = normalized.Substring(0, normalized.Length - SecretRecipeConstants.CloneSuffix.Length).Trim();
+            normalized = normalized.Substring(0, normalized.Length - VeiledRecipeConstants.CloneSuffix.Length).Trim();
         }
 
         return normalized;

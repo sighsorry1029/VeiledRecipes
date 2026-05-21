@@ -2,9 +2,9 @@ using System;
 using System.Globalization;
 using UnityEngine;
 
-namespace SecretRecipes;
+namespace VeiledRecipes;
 
-internal static partial class SecretRecipeState
+internal static partial class VeiledRecipeState
 {
     internal static void RecordStationInteraction(Player player, CraftingStation station)
     {
@@ -35,7 +35,7 @@ internal static partial class SecretRecipeState
         }
         catch (Exception ex)
         {
-            SecretRecipesPlugin.PluginLogger.LogDebug($"Could not refresh known recipes after station interaction: {ex.Message}");
+            VeiledRecipesPlugin.PluginLogger.LogDebug($"Could not refresh known recipes after station interaction: {ex.Message}");
         }
     }
 
@@ -145,21 +145,21 @@ internal static partial class SecretRecipeState
         return DlcInstalled(piece.m_dlc);
     }
 
-    internal static SecretRecipeVisibilityState GetRecipeVisibilityState(Player player, Recipe recipe)
+    internal static VeiledRecipeVisibilityState GetRecipeVisibilityState(Player player, Recipe recipe)
     {
         if (IsRecipeActuallyKnown(player, recipe))
         {
-            return SecretRecipeVisibilityState.Known;
+            return VeiledRecipeVisibilityState.Known;
         }
 
         return CanPreviewRecipe(player, recipe)
-            ? SecretRecipeVisibilityState.UnknownPreview
-            : SecretRecipeVisibilityState.Hidden;
+            ? VeiledRecipeVisibilityState.UnknownPreview
+            : VeiledRecipeVisibilityState.Hidden;
     }
 
     internal static bool IsUnknownRecipePreview(Player player, Recipe recipe)
     {
-        return GetRecipeVisibilityState(player, recipe) == SecretRecipeVisibilityState.UnknownPreview;
+        return GetRecipeVisibilityState(player, recipe) == VeiledRecipeVisibilityState.UnknownPreview;
     }
 
     internal static bool CanDiscoverRecipe(Player player, Recipe recipe)
@@ -308,7 +308,7 @@ internal static partial class SecretRecipeState
 
     private static string StationInteractionKey(string stationName)
     {
-        return SecretRecipeConstants.StationInteractionPrefix + stationName;
+        return VeiledRecipeConstants.StationInteractionPrefix + stationName;
     }
 
     private static bool IsRecipeEnabledForPlayer(Player player, Recipe recipe)

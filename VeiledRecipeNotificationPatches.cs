@@ -2,14 +2,14 @@
 
 using HarmonyLib;
 
-namespace SecretRecipes;
+namespace VeiledRecipes;
 
 [HarmonyPatch(typeof(MessageHud), nameof(MessageHud.QueueUnlockMsg))]
 internal static class MessageHudQueueUnlockMsgPatch
 {
     private static bool Prefix(MessageHud __instance, string topic, string description)
     {
-        if (SecretRecipeState.ShouldShowUnlockNotification(topic))
+        if (VeiledRecipeState.ShouldShowUnlockNotification(topic))
         {
             return true;
         }
@@ -24,7 +24,7 @@ internal static class PlayerSkillLevelUpEffectsPatch
 {
     private static bool Prefix()
     {
-        return SecretRecipeState.ShouldShowSkillLevelUpEffect();
+        return VeiledRecipeState.ShouldShowSkillLevelUpEffect();
     }
 }
 
@@ -33,6 +33,6 @@ internal static class PlayerSkillNotificationAlarmPatch
 {
     private static bool Prefix(string msg)
     {
-        return SecretRecipeState.ShouldShowSkillLevelUpNotification(msg);
+        return VeiledRecipeState.ShouldShowSkillLevelUpNotification(msg);
     }
 }

@@ -7,7 +7,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SecretRecipes;
+namespace VeiledRecipes;
 
 [HarmonyPatch(typeof(Player), nameof(Player.HaveRequirements), typeof(Recipe), typeof(bool), typeof(int), typeof(int))]
 internal static class PlayerRecipeRequirementsPatch
@@ -19,13 +19,13 @@ internal static class PlayerRecipeRequirementsPatch
             return true;
         }
 
-        if (discover && SecretRecipeState.RequireStationInteractionForRecipeUnlock)
+        if (discover && VeiledRecipeState.RequireStationInteractionForRecipeUnlock)
         {
-            __result = SecretRecipeState.CanDiscoverRecipe(__instance, recipe);
+            __result = VeiledRecipeState.CanDiscoverRecipe(__instance, recipe);
             return false;
         }
 
-        if (!discover && !SecretRecipeState.IsRecipeActuallyKnown(__instance, recipe))
+        if (!discover && !VeiledRecipeState.IsRecipeActuallyKnown(__instance, recipe))
         {
             __result = false;
             return false;
@@ -40,7 +40,7 @@ internal static class PlayerGetAvailableRecipesPatch
 {
     private static void Postfix(Player __instance, ref List<Recipe> available)
     {
-        if (!SecretRecipeState.ShowUnknownCraftingRecipes || ObjectDB.instance == null)
+        if (!VeiledRecipeState.ShowUnknownCraftingRecipes || ObjectDB.instance == null)
         {
             return;
         }
@@ -48,7 +48,7 @@ internal static class PlayerGetAvailableRecipesPatch
         HashSet<Recipe> availableRecipes = new(available);
         foreach (Recipe recipe in ObjectDB.instance.m_recipes)
         {
-            if (availableRecipes.Contains(recipe) || !SecretRecipeState.CanPreviewRecipe(__instance, recipe))
+            if (availableRecipes.Contains(recipe) || !VeiledRecipeState.CanPreviewRecipe(__instance, recipe))
             {
                 continue;
             }
@@ -64,7 +64,7 @@ internal static class InventoryGuiAddRecipeToListPatch
 {
     private static void Prefix(Player player, Recipe recipe, ref bool canCraft)
     {
-        if (!SecretRecipeState.IsRecipeActuallyKnown(player, recipe))
+        if (!VeiledRecipeState.IsRecipeActuallyKnown(player, recipe))
         {
             canCraft = false;
         }
@@ -72,7 +72,7 @@ internal static class InventoryGuiAddRecipeToListPatch
 
     private static void Postfix(InventoryGui __instance, Player player, Recipe recipe, ItemDrop.ItemData item)
     {
-        if (SecretRecipeState.IsRecipeActuallyKnown(player, recipe))
+        if (VeiledRecipeState.IsRecipeActuallyKnown(player, recipe))
         {
             return;
         }
@@ -100,7 +100,7 @@ internal static class InventoryGuiAddRecipeToListPatch
 
     private static void MaskRecipeListElement(GameObject element, Recipe recipe)
     {
-        Image icon = FindComponent<Image>(element.transform, SecretRecipeConstants.RecipeIconChild);
+        Image icon = FindComponent<Image>(element.transform, VeiledRecipeConstants.RecipeIconChild);
         if (icon != null)
         {
             icon.enabled = true;
@@ -111,20 +111,20 @@ internal static class InventoryGuiAddRecipeToListPatch
             icon.color = Color.black;
         }
 
-        TMP_Text name = FindComponent<TMP_Text>(element.transform, SecretRecipeConstants.RecipeNameChild);
+        TMP_Text name = FindComponent<TMP_Text>(element.transform, VeiledRecipeConstants.RecipeNameChild);
         if (name != null)
         {
-            name.text = SecretRecipeState.UnknownNameText;
+            name.text = VeiledRecipeState.UnknownNameText;
             name.color = Color.white;
         }
 
-        GuiBar durability = FindComponent<GuiBar>(element.transform, SecretRecipeConstants.DurabilityChild);
+        GuiBar durability = FindComponent<GuiBar>(element.transform, VeiledRecipeConstants.DurabilityChild);
         if (durability != null)
         {
             durability.gameObject.SetActive(false);
         }
 
-        TMP_Text quality = FindComponent<TMP_Text>(element.transform, SecretRecipeConstants.QualityLevelChild);
+        TMP_Text quality = FindComponent<TMP_Text>(element.transform, VeiledRecipeConstants.QualityLevelChild);
         if (quality != null)
         {
             quality.gameObject.SetActive(false);
@@ -144,7 +144,7 @@ internal static class InventoryGuiUpdateRecipeListPatch
     private static void Postfix(InventoryGui __instance)
     {
         Player player = Player.m_localPlayer;
-        if (!SecretRecipeState.GroupUnknownRecipePreviewsBelowKnownRecipes ||
+        if (!VeiledRecipeState.GroupUnknownRecipePreviewsBelowKnownRecipes ||
             player == null ||
             __instance.m_availableRecipes.Count <= 1)
         {
@@ -156,7 +156,7 @@ internal static class InventoryGuiUpdateRecipeListPatch
 
         foreach (InventoryGui.RecipeDataPair pair in __instance.m_availableRecipes)
         {
-            if (SecretRecipeState.IsUnknownRecipePreview(player, pair.Recipe))
+            if (VeiledRecipeState.IsUnknownRecipePreview(player, pair.Recipe))
             {
                 unknownPreviews.Add(pair);
             }
@@ -196,7 +196,7 @@ internal static class InventoryGuiUpdateRecipePatch
             return;
         }
 
-        if (SecretRecipeState.IsRecipeActuallyKnown(player, recipe))
+        if (VeiledRecipeState.IsRecipeActuallyKnown(player, recipe))
         {
             __instance.m_recipeIcon.color = Color.white;
             return;
@@ -220,14 +220,14 @@ internal static class InventoryGuiUpdateRecipePatch
         }
         gui.m_recipeIcon.color = Color.black;
         gui.m_recipeName.enabled = true;
-        gui.m_recipeName.text = SecretRecipeState.UnknownNameText;
+        gui.m_recipeName.text = VeiledRecipeState.UnknownNameText;
         gui.m_recipeDecription.enabled = true;
-        gui.m_recipeDecription.text = SecretRecipeState.UnknownDescriptionText;
+        gui.m_recipeDecription.text = VeiledRecipeState.UnknownDescriptionText;
         gui.m_variantButton.gameObject.SetActive(false);
         gui.m_itemCraftType.gameObject.SetActive(false);
         gui.m_qualityPanel.gameObject.SetActive(false);
         gui.m_craftButton.interactable = false;
-        gui.m_craftButton.GetComponent<UITooltip>().m_text = SecretRecipeState.UnknownDescriptionText;
+        gui.m_craftButton.GetComponent<UITooltip>().m_text = VeiledRecipeState.UnknownDescriptionText;
 
         SetupRecipeRequirements(gui, player, recipe, quality, allowedQuality, craftMultiplier);
         SetupRecipeStationLevel(gui, player, recipe, quality, allowedQuality);
@@ -243,9 +243,9 @@ internal static class InventoryGuiUpdateRecipePatch
         }
 
         gui.m_minStationLevelIcon.gameObject.SetActive(true);
-        gui.m_minStationLevelText.text = SecretRecipeState.KnowsRecipeStationRequirement(player, recipe, quality)
+        gui.m_minStationLevelText.text = VeiledRecipeState.KnowsRecipeStationRequirement(player, recipe, quality)
             ? recipe.GetRequiredStationLevel(quality).ToString()
-            : SecretRecipeState.UnknownRequirementText;
+            : VeiledRecipeState.UnknownRequirementText;
         gui.m_minStationLevelText.color = gui.m_minStationLevelBasecolor;
     }
 
@@ -278,7 +278,7 @@ internal static class InventoryGuiUpdateRecipePatch
             return;
         }
 
-        if (SecretRecipeState.IsMaterialKnown(player, requirement))
+        if (VeiledRecipeState.IsMaterialKnown(player, requirement))
         {
             InventoryGui.SetupRequirement(root, requirement, player, craft, quality, multiplier);
         }
@@ -290,9 +290,9 @@ internal static class InventoryGuiUpdateRecipePatch
 
     internal static void SetupMaskedRequirement(Transform root, Piece.Requirement requirement)
     {
-        Image icon = FindComponent<Image>(root, SecretRecipeConstants.RequirementIconChild);
-        TMP_Text name = FindComponent<TMP_Text>(root, SecretRecipeConstants.RequirementNameChild);
-        TMP_Text amount = FindComponent<TMP_Text>(root, SecretRecipeConstants.RequirementAmountChild);
+        Image icon = FindComponent<Image>(root, VeiledRecipeConstants.RequirementIconChild);
+        TMP_Text name = FindComponent<TMP_Text>(root, VeiledRecipeConstants.RequirementNameChild);
+        TMP_Text amount = FindComponent<TMP_Text>(root, VeiledRecipeConstants.RequirementAmountChild);
         UITooltip tooltip = root.GetComponent<UITooltip>();
 
         if (icon != null)
@@ -309,20 +309,20 @@ internal static class InventoryGuiUpdateRecipePatch
         if (name != null)
         {
             name.gameObject.SetActive(true);
-            name.text = SecretRecipeState.UnknownNameText;
+            name.text = VeiledRecipeState.UnknownNameText;
             name.color = Color.white;
         }
 
         if (amount != null)
         {
             amount.gameObject.SetActive(true);
-            amount.text = SecretRecipeState.UnknownRequirementText;
+            amount.text = VeiledRecipeState.UnknownRequirementText;
             amount.color = Color.white;
         }
 
         if (tooltip != null)
         {
-            tooltip.m_text = SecretRecipeState.UnknownNameText;
+            tooltip.m_text = VeiledRecipeState.UnknownNameText;
         }
     }
 
@@ -364,9 +364,9 @@ internal static class InventoryGuiOnCraftPressedPatch
     private static bool Prefix(InventoryGui __instance)
     {
         Recipe recipe = __instance.m_selectedRecipe.Recipe;
-        if (recipe != null && !SecretRecipeState.IsRecipeActuallyKnown(Player.m_localPlayer, recipe))
+        if (recipe != null && !VeiledRecipeState.IsRecipeActuallyKnown(Player.m_localPlayer, recipe))
         {
-            Player.m_localPlayer.Message(MessageHud.MessageType.Center, SecretRecipeConstants.MissingRequirementMessage);
+            Player.m_localPlayer.Message(MessageHud.MessageType.Center, VeiledRecipeConstants.MissingRequirementMessage);
             return false;
         }
 
@@ -380,10 +380,10 @@ internal static class InventoryGuiDoCraftingPatch
     private static bool Prefix(InventoryGui __instance, Player player)
     {
         Recipe recipe = __instance.m_craftRecipe;
-        if (recipe != null && !SecretRecipeState.IsRecipeActuallyKnown(player, recipe))
+        if (recipe != null && !VeiledRecipeState.IsRecipeActuallyKnown(player, recipe))
         {
             __instance.m_craftTimer = -1f;
-            player.Message(MessageHud.MessageType.Center, SecretRecipeConstants.MissingRequirementMessage);
+            player.Message(MessageHud.MessageType.Center, VeiledRecipeConstants.MissingRequirementMessage);
             return false;
         }
 

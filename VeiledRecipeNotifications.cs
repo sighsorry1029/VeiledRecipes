@@ -1,15 +1,15 @@
 using System;
 
-namespace SecretRecipes;
+namespace VeiledRecipes;
 
-internal static partial class SecretRecipeState
+internal static partial class VeiledRecipeState
 {
     internal static bool ShouldShowUnlockNotification(string topic)
     {
         return NormalizeToken(topic) switch
         {
-            SecretRecipeConstants.NewRecipeMessage => ShowRecipeUnlockNotifications,
-            SecretRecipeConstants.NewPieceMessage or SecretRecipeConstants.NewDishMessage => ShowPieceUnlockNotifications,
+            VeiledRecipeConstants.NewRecipeMessage => ShowRecipeUnlockNotifications,
+            VeiledRecipeConstants.NewPieceMessage or VeiledRecipeConstants.NewDishMessage => ShowPieceUnlockNotifications,
             _ => true
         };
     }
@@ -26,7 +26,7 @@ internal static partial class SecretRecipeState
 
     private static bool IsSkillNotificationMessage(string message)
     {
-        return NormalizeToken(message).StartsWith(SecretRecipeConstants.SkillUpMessagePrefix, StringComparison.OrdinalIgnoreCase);
+        return NormalizeToken(message).StartsWith(VeiledRecipeConstants.SkillUpMessagePrefix, StringComparison.OrdinalIgnoreCase);
     }
 
     private static string NormalizeToken(string value)

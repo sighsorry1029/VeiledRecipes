@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -11,12 +11,12 @@ using JetBrains.Annotations;
 using ServerSync;
 using UnityEngine;
 
-namespace SecretRecipes;
+namespace VeiledRecipes;
 
 [BepInPlugin(ModGUID, ModName, ModVersion)]
-public class SecretRecipesPlugin : BaseUnityPlugin
+public class VeiledRecipesPlugin : BaseUnityPlugin
 {
-    internal const string ModName = "SecretRecipes";
+    internal const string ModName = "VeiledRecipes";
     internal const string ModVersion = "1.0.0";
     internal const string Author = "sighsorry";
     public const string ModGUID = $"{Author}.{ModName}";
@@ -49,14 +49,14 @@ public class SecretRecipesPlugin : BaseUnityPlugin
         _serverConfigLocked = config("1 - General", "Lock Configuration", Toggle.On, "If on, the configuration is locked and can be changed by server admins only.");
         _ = ConfigSync.AddLockingConfigEntry(_serverConfigLocked);
 
-        ShowUnknownCraftingRecipes = config("2 - Secret Recipes", "Show Unknown Crafting Recipes", Toggle.On, "Shows crafting recipes at the relevant crafting station before the recipe is fully unlocked.");
-        ShowUnknownBuildPieces = config("2 - Secret Recipes", "Show Unknown Build Pieces", Toggle.On, "Shows build pieces in build-piece tables before the piece is fully unlocked.");
-        RequireStationLevelForUnknownCraftingRecipes = config("2 - Secret Recipes", "Require Station Level For Unknown Crafting Recipes", Toggle.On, "If on, unknown crafting recipe previews are shown only when the current crafting station meets the recipe's required station level.");
-        RequireStationInteractionForRecipeUnlock = config("2 - Secret Recipes", "Require Station Interaction For Recipe Unlock", Toggle.On, "If on, recipes that require a crafting station unlock only after the player has interacted with the required station level. If off, Valheim's normal station discovery behavior is used for recipe station knowledge.");
-        EnableStationProximityDiscovery = config("2 - Secret Recipes", "Enable Station Proximity Discovery", Toggle.On, "If on, Valheim's normal crafting station discovery radius is used. If off, walking near a crafting station does not discover it; interacting with the station is required.");
-        RecipePreviewPrefabBlacklist = config("2 - Secret Recipes", "Recipe Preview Prefab Blacklist", "", "Comma-separated item prefab names whose unknown crafting recipe previews should never be shown. This does not hide recipes after they are actually unlocked. Example: ArmorIronLegs, SwordIron");
-        PiecePreviewPrefabBlacklist = config("2 - Secret Recipes", "Piece Preview Prefab Blacklist", "", "Comma-separated piece prefab names whose unknown build piece previews should never be shown. This does not hide pieces after they are actually unlocked. Example: piece_workbench_ext1, piece_chest");
-        RequirementPreviewPrefabBlacklist = config("2 - Secret Recipes", "Requirement Preview Prefab Blacklist", "SwordCheat, SledgeCheat", "Comma-separated ingredient/resource prefab names that prevent unknown crafting recipe and build-piece previews from being shown when required by that recipe or piece. This does not hide anything after it is actually unlocked.");
+        ShowUnknownCraftingRecipes = config("2 - Veiled Recipes", "Show Unknown Crafting Recipes", Toggle.On, "Shows crafting recipes at the relevant crafting station before the recipe is fully unlocked.");
+        ShowUnknownBuildPieces = config("2 - Veiled Recipes", "Show Unknown Build Pieces", Toggle.On, "Shows build pieces in build-piece tables before the piece is fully unlocked.");
+        RequireStationLevelForUnknownCraftingRecipes = config("2 - Veiled Recipes", "Require Station Level For Unknown Crafting Recipes", Toggle.On, "If on, unknown crafting recipe previews are shown only when the current crafting station meets the recipe's required station level.");
+        RequireStationInteractionForRecipeUnlock = config("2 - Veiled Recipes", "Require Station Interaction For Recipe Unlock", Toggle.On, "If on, recipes that require a crafting station unlock only after the player has interacted with the required station level. If off, Valheim's normal station discovery behavior is used for recipe station knowledge.");
+        EnableStationProximityDiscovery = config("2 - Veiled Recipes", "Enable Station Proximity Discovery", Toggle.On, "If on, Valheim's normal crafting station discovery radius is used. If off, walking near a crafting station does not discover it; interacting with the station is required.");
+        RecipePreviewPrefabBlacklist = config("2 - Veiled Recipes", "Recipe Preview Prefab Blacklist", "", "Comma-separated item prefab names whose unknown crafting recipe previews should never be shown. This does not hide recipes after they are actually unlocked. Example: ArmorIronLegs, SwordIron");
+        PiecePreviewPrefabBlacklist = config("2 - Veiled Recipes", "Piece Preview Prefab Blacklist", "", "Comma-separated piece prefab names whose unknown build piece previews should never be shown. This does not hide pieces after they are actually unlocked. Example: piece_workbench_ext1, piece_chest");
+        RequirementPreviewPrefabBlacklist = config("2 - Veiled Recipes", "Requirement Preview Prefab Blacklist", "SwordCheat, SledgeCheat", "Comma-separated ingredient/resource prefab names that prevent unknown crafting recipe and build-piece previews from being shown when required by that recipe or piece. This does not hide anything after it is actually unlocked.");
         UnknownNameText = config("3 - Display", "Unknown Name Text", "???", "Text shown for unknown recipe and piece names.");
         UnknownDescriptionText = config("3 - Display", "Unknown Description Text", "Not enough info", "Text shown for unknown recipe and piece descriptions.");
         UnknownRequirementText = config("3 - Display", "Unknown Requirement Text", "?", "Text shown for unknown requirement names, amounts, and station levels.");
@@ -218,16 +218,16 @@ public static class KeyboardExtensions
 
 public static class ToggleExtentions
 {
-    extension(SecretRecipesPlugin.Toggle value)
+    extension(VeiledRecipesPlugin.Toggle value)
     {
         public bool IsOn()
         {
-            return value == SecretRecipesPlugin.Toggle.On;
+            return value == VeiledRecipesPlugin.Toggle.On;
         }
 
         public bool IsOff()
         {
-            return value == SecretRecipesPlugin.Toggle.Off;
+            return value == VeiledRecipesPlugin.Toggle.Off;
         }
     }
 }

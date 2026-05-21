@@ -6,7 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SecretRecipes;
+namespace VeiledRecipes;
 
 [HarmonyPatch(typeof(Player), nameof(Player.HaveRequirements), typeof(Piece), typeof(Player.RequirementMode))]
 internal static class PlayerPieceRequirementsPatch
@@ -18,7 +18,7 @@ internal static class PlayerPieceRequirementsPatch
             return true;
         }
 
-        if (mode != Player.RequirementMode.IsKnown && !SecretRecipeState.IsPieceActuallyKnown(__instance, piece))
+        if (mode != Player.RequirementMode.IsKnown && !VeiledRecipeState.IsPieceActuallyKnown(__instance, piece))
         {
             __result = false;
             return false;
@@ -33,7 +33,7 @@ internal static class PieceTableUpdateAvailablePatch
 {
     private static void Postfix(PieceTable __instance, Player player)
     {
-        if (!SecretRecipeState.ShowUnknownBuildPieces || player == null)
+        if (!VeiledRecipeState.ShowUnknownBuildPieces || player == null)
         {
             return;
         }
@@ -47,7 +47,7 @@ internal static class PieceTableUpdateAvailablePatch
             if (piece == null ||
                 string.IsNullOrEmpty(prefabName) ||
                 availablePieceNames.Contains(prefabName) ||
-                !SecretRecipeState.CanPreviewPiece(player, piece))
+                !VeiledRecipeState.CanPreviewPiece(player, piece))
             {
                 continue;
             }
@@ -59,7 +59,7 @@ internal static class PieceTableUpdateAvailablePatch
 
     private static void EnsureAvailablePieceBuckets(PieceTable table)
     {
-        while (table.m_availablePieces.Count < SecretRecipeConstants.PieceCategoryBucketCount)
+        while (table.m_availablePieces.Count < VeiledRecipeConstants.PieceCategoryBucketCount)
         {
             table.m_availablePieces.Add(new List<Piece>());
         }
@@ -115,7 +115,7 @@ internal static class HudUpdatePieceListPatch
         for (int i = 0; i < __instance.m_pieceIcons.Count && i < pieces.Count; i++)
         {
             Piece piece = pieces[i];
-            if (SecretRecipeState.IsPieceActuallyKnown(player, piece))
+            if (VeiledRecipeState.IsPieceActuallyKnown(player, piece))
             {
                 continue;
             }
@@ -124,7 +124,7 @@ internal static class HudUpdatePieceListPatch
             iconData.m_icon.enabled = true;
             iconData.m_icon.sprite = piece.m_icon;
             iconData.m_icon.color = Color.black;
-            iconData.m_tooltip.m_text = SecretRecipeState.UnknownNameText;
+            iconData.m_tooltip.m_text = VeiledRecipeState.UnknownNameText;
             iconData.m_upgrade.SetActive(false);
         }
     }
@@ -140,7 +140,7 @@ internal static class HudSetupPieceInfoPatch
             return;
         }
 
-        if (SecretRecipeState.IsPieceActuallyKnown(Player.m_localPlayer, piece))
+        if (VeiledRecipeState.IsPieceActuallyKnown(Player.m_localPlayer, piece))
         {
             __instance.m_buildIcon.color = Color.white;
             return;
@@ -151,8 +151,8 @@ internal static class HudSetupPieceInfoPatch
 
     private static void MaskPieceInfo(Hud hud, Player player, Piece piece)
     {
-        hud.m_buildSelection.text = SecretRecipeState.UnknownNameText;
-        hud.m_pieceDescription.text = SecretRecipeState.UnknownDescriptionText;
+        hud.m_buildSelection.text = VeiledRecipeState.UnknownNameText;
+        hud.m_pieceDescription.text = VeiledRecipeState.UnknownDescriptionText;
         hud.m_buildIcon.enabled = true;
         hud.m_buildIcon.sprite = piece.m_icon;
         hud.m_buildIcon.color = Color.black;
@@ -191,11 +191,11 @@ internal static class HudSetupPieceInfoPatch
 
     private static void SetupStationRequirement(Transform root, Player player, Piece piece)
     {
-        Image icon = InventoryGuiUpdateRecipePatch.FindComponent<Image>(root, SecretRecipeConstants.RequirementIconChild);
-        TMP_Text name = InventoryGuiUpdateRecipePatch.FindComponent<TMP_Text>(root, SecretRecipeConstants.RequirementNameChild);
-        TMP_Text amount = InventoryGuiUpdateRecipePatch.FindComponent<TMP_Text>(root, SecretRecipeConstants.RequirementAmountChild);
+        Image icon = InventoryGuiUpdateRecipePatch.FindComponent<Image>(root, VeiledRecipeConstants.RequirementIconChild);
+        TMP_Text name = InventoryGuiUpdateRecipePatch.FindComponent<TMP_Text>(root, VeiledRecipeConstants.RequirementNameChild);
+        TMP_Text amount = InventoryGuiUpdateRecipePatch.FindComponent<TMP_Text>(root, VeiledRecipeConstants.RequirementAmountChild);
         UITooltip tooltip = root.GetComponent<UITooltip>();
-        bool knownStation = SecretRecipeState.KnowsPieceStationRequirement(player, piece);
+        bool knownStation = VeiledRecipeState.KnowsPieceStationRequirement(player, piece);
 
         if (icon != null)
         {
@@ -208,7 +208,7 @@ internal static class HudSetupPieceInfoPatch
         if (name != null)
         {
             name.gameObject.SetActive(true);
-            name.text = knownStation ? Localization.instance.Localize(piece.m_craftingStation.m_name) : SecretRecipeState.UnknownNameText;
+            name.text = knownStation ? Localization.instance.Localize(piece.m_craftingStation.m_name) : VeiledRecipeState.UnknownNameText;
             name.color = Color.white;
         }
 
@@ -226,20 +226,20 @@ internal static class HudSetupPieceInfoPatch
                 }
                 else
                 {
-                    amount.text = Localization.instance.Localize(SecretRecipeConstants.MenuNoneMessage);
+                    amount.text = Localization.instance.Localize(VeiledRecipeConstants.MenuNoneMessage);
                     amount.color = Color.white;
                 }
             }
             else
             {
-                amount.text = SecretRecipeState.UnknownRequirementText;
+                amount.text = VeiledRecipeState.UnknownRequirementText;
                 amount.color = Color.white;
             }
         }
 
         if (tooltip != null)
         {
-            tooltip.m_text = knownStation ? piece.m_craftingStation.m_name : SecretRecipeState.UnknownNameText;
+            tooltip.m_text = knownStation ? piece.m_craftingStation.m_name : VeiledRecipeState.UnknownNameText;
         }
     }
 }
@@ -250,7 +250,7 @@ internal static class PlayerSetupPlacementGhostPatch
     private static void Postfix(Player __instance)
     {
         Piece selectedPiece = __instance.GetSelectedPiece();
-        if (selectedPiece == null || SecretRecipeState.IsPieceActuallyKnown(__instance, selectedPiece))
+        if (selectedPiece == null || VeiledRecipeState.IsPieceActuallyKnown(__instance, selectedPiece))
         {
             return;
         }
@@ -273,9 +273,9 @@ internal static class PlayerTryPlacePiecePatch
 {
     private static bool Prefix(Player __instance, Piece piece, ref bool __result)
     {
-        if (piece != null && !SecretRecipeState.IsPieceActuallyKnown(__instance, piece))
+        if (piece != null && !VeiledRecipeState.IsPieceActuallyKnown(__instance, piece))
         {
-            __instance.Message(MessageHud.MessageType.Center, SecretRecipeConstants.MissingRequirementMessage);
+            __instance.Message(MessageHud.MessageType.Center, VeiledRecipeConstants.MissingRequirementMessage);
             __result = false;
             return false;
         }

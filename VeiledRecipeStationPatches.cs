@@ -2,7 +2,7 @@
 
 using HarmonyLib;
 
-namespace SecretRecipes;
+namespace VeiledRecipes;
 
 [HarmonyPatch(typeof(CraftingStation), nameof(CraftingStation.Interact))]
 internal static class CraftingStationInteractPatch
@@ -19,7 +19,7 @@ internal static class CraftingStationInteractPatch
             return;
         }
 
-        SecretRecipeState.RecordStationInteraction(player, __instance);
+        VeiledRecipeState.RecordStationInteraction(player, __instance);
     }
 }
 
@@ -28,6 +28,6 @@ internal static class CraftingStationUpdateKnownStationsInRangePatch
 {
     private static bool Prefix()
     {
-        return SecretRecipeState.EnableStationProximityDiscovery;
+        return VeiledRecipeState.EnableStationProximityDiscovery;
     }
 }
