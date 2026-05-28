@@ -4,13 +4,23 @@ VeiledRecipes changes how Valheim presents unknown recipes and build pieces. Ins
 
 The mod does not grant recipes early. Unknown previews cannot be crafted or placed.
 
-![](https://i.ibb.co/fVF9LcWq/Screenshot-2026-05-21-215826.png)
-![](https://i.ibb.co/RpBF0FLq/Screenshot-2026-05-21-215258.png)
-![](https://i.ibb.co/MD05vpz0/Screenshot-2026-05-21-215238.png)
-![](https://i.ibb.co/chcXxxgp/Screenshot-2026-05-21-221859.png)
-![](https://i.ibb.co/tMV4ryLM/Screenshot-2026-05-21-221754.png)
-![](https://i.ibb.co/KzF9wfMy/Screenshot-2026-05-21-221642.png)
+![](https://i.ibb.co/fVF9LcWq/Screenshot-2026-05-21-215826.png) <br>
+Veiled recipes would be unlocked only when all the materials and station requirements were met. <br>
+The stations are unlocked only when the player interacts with them by default. <br>
+
+![](https://i.ibb.co/chcXxxgp/Screenshot-2026-05-21-221859.png) <br>
+By default, veiled recipes are grouped below known recipes. <br>
+
+![](https://i.ibb.co/tMV4ryLM/Screenshot-2026-05-21-221754.png) <br>
+By default, even veiled recipes are not shown when crafting station level is not met.
+
+![](https://i.ibb.co/Z1tWJtG2/Screenshot-2026-05-21-214653.png) <br>
+InventorySlots mod is compatible with VeiledRecipes. Check it out! <br>
+https://thunderstore.io/c/valheim/p/sighsorry/InventorySlots/
+
 ![](https://i.ibb.co/5XDR5gkR/Screenshot-2026-05-21-215857.png)
+Piece recipes are also veiled. <br>
+By default, players don't have to interact with the crafting station to unlock the piece recipes. <br>
 
 ## Strengths
 
@@ -202,10 +212,6 @@ Soft dependency GUID:
 ```text
 sighsorry.VeiledRecipes
 ```
-
-## Notes
-
-VeiledRecipes is meant to reveal possibility, not grant power. If an entry is only a preview, the player still needs to satisfy Valheim's real discovery rules before crafting or building it.
 
 ## Git
 

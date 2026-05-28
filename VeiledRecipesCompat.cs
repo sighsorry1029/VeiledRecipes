@@ -1,3 +1,5 @@
+using System;
+
 namespace VeiledRecipes;
 
 public static class VeiledRecipesCompat
@@ -73,6 +75,36 @@ public static class VeiledRecipesCompat
     public static bool ShouldMaskPiece(Player player, Piece piece)
     {
         return player != null && piece != null && !VeiledRecipeState.IsPieceActuallyKnown(player, piece);
+    }
+
+    public static void RegisterKnownPieceOverride(Func<Piece, bool> predicate)
+    {
+        VeiledRecipeState.RegisterKnownPieceOverride(predicate);
+    }
+
+    public static void UnregisterKnownPieceOverride(Func<Piece, bool> predicate)
+    {
+        VeiledRecipeState.UnregisterKnownPieceOverride(predicate);
+    }
+
+    public static void RegisterKnownPiecePrefabOverride(string prefabName)
+    {
+        VeiledRecipeState.RegisterKnownPiecePrefabOverride(prefabName);
+    }
+
+    public static void UnregisterKnownPiecePrefabOverride(string prefabName)
+    {
+        VeiledRecipeState.UnregisterKnownPiecePrefabOverride(prefabName);
+    }
+
+    public static void RegisterKnownPieceTypeOverride(string typeName)
+    {
+        VeiledRecipeState.RegisterKnownPieceTypeOverride(typeName);
+    }
+
+    public static void UnregisterKnownPieceTypeOverride(string typeName)
+    {
+        VeiledRecipeState.UnregisterKnownPieceTypeOverride(typeName);
     }
 
     public static bool IsPieceActuallyKnown(Player player, Piece piece)

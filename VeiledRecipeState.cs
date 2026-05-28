@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 
@@ -6,6 +7,73 @@ namespace VeiledRecipes;
 
 internal static partial class VeiledRecipeState
 {
+    private static readonly List<Func<Piece, bool>> KnownPieceOverrides = new();
+    private static readonly HashSet<string> KnownPiecePrefabOverrides = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly HashSet<string> KnownPieceTypeOverrides = new(StringComparer.Ordinal)
+    {
+        "InfinityHammer.BuildMenuTool"
+    };
+
+    internal static void RegisterKnownPieceOverride(Func<Piece, bool> predicate)
+    {
+        if (predicate == null || KnownPieceOverrides.Contains(predicate))
+        {
+            return;
+        }
+
+        KnownPieceOverrides.Add(predicate);
+    }
+
+    internal static void UnregisterKnownPieceOverride(Func<Piece, bool> predicate)
+    {
+        if (predicate == null)
+        {
+            return;
+        }
+
+        KnownPieceOverrides.Remove(predicate);
+    }
+
+    internal static void RegisterKnownPiecePrefabOverride(string prefabName)
+    {
+        if (string.IsNullOrWhiteSpace(prefabName))
+        {
+            return;
+        }
+
+        KnownPiecePrefabOverrides.Add(prefabName.Trim());
+    }
+
+    internal static void UnregisterKnownPiecePrefabOverride(string prefabName)
+    {
+        if (string.IsNullOrWhiteSpace(prefabName))
+        {
+            return;
+        }
+
+        KnownPiecePrefabOverrides.Remove(prefabName.Trim());
+    }
+
+    internal static void RegisterKnownPieceTypeOverride(string typeName)
+    {
+        if (string.IsNullOrWhiteSpace(typeName))
+        {
+            return;
+        }
+
+        KnownPieceTypeOverrides.Add(typeName.Trim());
+    }
+
+    internal static void UnregisterKnownPieceTypeOverride(string typeName)
+    {
+        if (string.IsNullOrWhiteSpace(typeName))
+        {
+            return;
+        }
+
+        KnownPieceTypeOverrides.Remove(typeName.Trim());
+    }
+
     internal static void RecordStationInteraction(Player player, CraftingStation station)
     {
         if (player == null || station == null)
@@ -81,6 +149,11 @@ internal static partial class VeiledRecipeState
             return true;
         }
 
+        if (HasKnownPieceOverride(piece))
+        {
+            return true;
+        }
+
         return player.m_knownRecipes.Contains(piece.m_name);
     }
 
@@ -138,6 +211,11 @@ internal static partial class VeiledRecipeState
         }
 
         if (HasPreviewBlacklistedRequirement(piece.m_resources))
+        {
+            return false;
+        }
+
+        if (RequireStationKnowledgeForUnknownBuildPieces && !KnowsPieceStationRequirement(player, piece))
         {
             return false;
         }
@@ -321,6 +399,43 @@ internal static partial class VeiledRecipeState
     {
         bool seasonal = player.CurrentSeason != null && player.CurrentSeason.Pieces.Contains(piece.gameObject);
         return piece.m_enabled || seasonal;
+    }
+
+    private static bool HasKnownPieceOverride(Piece piece)
+    {
+        if (piece == null)
+        {
+            return false;
+        }
+
+        string prefabName = Utils.GetPrefabName(piece.gameObject);
+        if (!string.IsNullOrEmpty(prefabName) && KnownPiecePrefabOverrides.Contains(prefabName))
+        {
+            return true;
+        }
+
+        string typeName = piece.GetType().FullName;
+        if (!string.IsNullOrEmpty(typeName) && KnownPieceTypeOverrides.Contains(typeName))
+        {
+            return true;
+        }
+
+        foreach (Func<Piece, bool> predicate in KnownPieceOverrides)
+        {
+            try
+            {
+                if (predicate(piece))
+                {
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                VeiledRecipesPlugin.PluginLogger.LogDebug($"Known piece override failed for '{prefabName}': {ex.Message}");
+            }
+        }
+
+        return false;
     }
 
     private static bool PassesCraftFilter(Recipe recipe)

@@ -10,6 +10,8 @@ internal static partial class VeiledRecipeState
 
     internal static bool RequireStationLevelForUnknownCraftingRecipes => IsOn(VeiledRecipesPlugin.RequireStationLevelForUnknownCraftingRecipes);
 
+    internal static bool RequireStationKnowledgeForUnknownBuildPieces => IsOn(VeiledRecipesPlugin.RequireStationKnowledgeForUnknownBuildPieces);
+
     internal static bool RequireStationInteractionForRecipeUnlock => IsOn(VeiledRecipesPlugin.RequireStationInteractionForRecipeUnlock);
 
     internal static bool EnableStationProximityDiscovery => IsOn(VeiledRecipesPlugin.EnableStationProximityDiscovery);

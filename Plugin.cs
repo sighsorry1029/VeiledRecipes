@@ -17,7 +17,7 @@ namespace VeiledRecipes;
 public class VeiledRecipesPlugin : BaseUnityPlugin
 {
     internal const string ModName = "VeiledRecipes";
-    internal const string ModVersion = "1.0.0";
+    internal const string ModVersion = "1.0.2";
     internal const string Author = "sighsorry";
     public const string ModGUID = $"{Author}.{ModName}";
     private static string ConfigFileName = $"{ModGUID}.cfg";
@@ -52,6 +52,7 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
         ShowUnknownCraftingRecipes = config("2 - Veiled Recipes", "Show Unknown Crafting Recipes", Toggle.On, "Shows crafting recipes at the relevant crafting station before the recipe is fully unlocked.");
         ShowUnknownBuildPieces = config("2 - Veiled Recipes", "Show Unknown Build Pieces", Toggle.On, "Shows build pieces in build-piece tables before the piece is fully unlocked.");
         RequireStationLevelForUnknownCraftingRecipes = config("2 - Veiled Recipes", "Require Station Level For Unknown Crafting Recipes", Toggle.On, "If on, unknown crafting recipe previews are shown only when the current crafting station meets the recipe's required station level.");
+        RequireStationKnowledgeForUnknownBuildPieces = config("2 - Veiled Recipes", "Require Station Knowledge For Unknown Build Pieces", Toggle.On, "If on, unknown build-piece previews that require a crafting station are shown only after the player knows that station.");
         RequireStationInteractionForRecipeUnlock = config("2 - Veiled Recipes", "Require Station Interaction For Recipe Unlock", Toggle.On, "If on, recipes that require a crafting station unlock only after the player has interacted with the required station level. If off, Valheim's normal station discovery behavior is used for recipe station knowledge.");
         EnableStationProximityDiscovery = config("2 - Veiled Recipes", "Enable Station Proximity Discovery", Toggle.On, "If on, Valheim's normal crafting station discovery radius is used. If off, walking near a crafting station does not discover it; interacting with the station is required.");
         RecipePreviewPrefabBlacklist = config("2 - Veiled Recipes", "Recipe Preview Prefab Blacklist", "", "Comma-separated item prefab names whose unknown crafting recipe previews should never be shown. This does not hide recipes after they are actually unlocked. Example: ArmorIronLegs, SwordIron");
@@ -151,6 +152,7 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
     internal static ConfigEntry<Toggle> ShowUnknownCraftingRecipes = null!;
     internal static ConfigEntry<Toggle> ShowUnknownBuildPieces = null!;
     internal static ConfigEntry<Toggle> RequireStationLevelForUnknownCraftingRecipes = null!;
+    internal static ConfigEntry<Toggle> RequireStationKnowledgeForUnknownBuildPieces = null!;
     internal static ConfigEntry<Toggle> RequireStationInteractionForRecipeUnlock = null!;
     internal static ConfigEntry<Toggle> EnableStationProximityDiscovery = null!;
     internal static ConfigEntry<string> RecipePreviewPrefabBlacklist = null!;

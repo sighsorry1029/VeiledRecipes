@@ -131,7 +131,7 @@
         <Content Include="Libs\ServerSync.dll">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
-        <Content Include="LICENSE.txt"/>
+        <Content Include="LICENSE"/>
         <Content Include="README.md"/>
         <Content Include="Thunderstore\CHANGELOG.md"/>
         <Content Include="Thunderstore\icon.png"/>
@@ -189,7 +189,6 @@
         <Warning Text="README.md not found in project directory. A default README.md file will be created for the Thunderstore package" Condition="!Exists('README.md')"/>
         <WriteLinesToFile File="README.md" Lines="Default Readme file from one of Azumatt's Templates. Replace this with actual content." Overwrite="false" Condition="!Exists('README.md')"/>
         <Copy SourceFiles="README.md" DestinationFolder="$(PackageDir)" OverwriteReadOnlyFiles="true"/>
-        <Copy SourceFiles="README.md" DestinationFolder="$(ProjectDir)\Thunderstore" OverwriteReadOnlyFiles="true"/>
     </Target>
     <Target Name="UpdateManifestVersion" AfterTargets="CopyReadmeToTSFolder" Condition=" ('$(Configuration)|$(Platform)' == 'Release|AnyCPU') And ('$(OS)' == 'Windows_NT') ">
         <Error Text="manifest.json not found in Thunderstore directory." Condition="!Exists('$(ProjectDir)\Thunderstore\manifest.json')"/>
