@@ -420,6 +420,11 @@ internal static partial class VeiledRecipeState
             return true;
         }
 
+        if (VeiledRecipeInfinityHammerCompat.IsActiveToolSelectionPiece(piece))
+        {
+            return true;
+        }
+
         foreach (Func<Piece, bool> predicate in KnownPieceOverrides)
         {
             try

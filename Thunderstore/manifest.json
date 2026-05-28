@@ -1,6 +1,6 @@
 {
   "name": "VeiledRecipes",
-  "version_number": "1.0.2",
+  "version_number": "1.0.3",
   "website_url": "https://discord.gg/jkcJCq2sK5",
   "description": "Shows undiscovered recipes and build pieces as masked previews without early unlocks. Reveals known materials/station info gradually, blocks crafting and placement until learned, with synced discovery/blacklist configs and notification controls.",
   "dependencies": [
