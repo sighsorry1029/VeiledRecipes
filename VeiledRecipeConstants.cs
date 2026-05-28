@@ -13,7 +13,6 @@ internal static class VeiledRecipeConstants
     internal const string MissingRequirementMessage = "$msg_missingrequirement";
     internal const string MenuNoneMessage = "$menu_none";
     internal const string CloneSuffix = "(Clone)";
-    internal const int PieceCategoryBucketCount = 8;
     internal const string RecipeIconChild = "icon";
     internal const string RecipeNameChild = "name";
     internal const string DurabilityChild = "Durability";

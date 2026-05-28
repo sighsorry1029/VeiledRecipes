@@ -42,6 +42,28 @@ public static class VeiledRecipesCompat
         return player != null && recipe != null && VeiledRecipeState.IsUnknownRecipePreview(player, recipe);
     }
 
+    public static VeiledRecipeVisibilityState GetPieceVisibilityState(Piece piece)
+    {
+        return GetPieceVisibilityState(Player.m_localPlayer, piece);
+    }
+
+    public static VeiledRecipeVisibilityState GetPieceVisibilityState(Player player, Piece piece)
+    {
+        return player != null && piece != null
+            ? VeiledRecipeState.GetPieceVisibilityState(player, piece)
+            : VeiledRecipeVisibilityState.Hidden;
+    }
+
+    public static bool IsUnknownPiecePreview(Piece piece)
+    {
+        return IsUnknownPiecePreview(Player.m_localPlayer, piece);
+    }
+
+    public static bool IsUnknownPiecePreview(Player player, Piece piece)
+    {
+        return player != null && piece != null && VeiledRecipeState.IsUnknownPiecePreview(player, piece);
+    }
+
     public static bool ShouldMaskRecipe(Recipe recipe)
     {
         return ShouldMaskRecipe(Player.m_localPlayer, recipe);

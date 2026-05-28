@@ -1,10 +1,7 @@
-#nullable disable
-
+using System;
 using System.Collections.Generic;
 using HarmonyLib;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace VeiledRecipes;
 
@@ -42,12 +39,12 @@ internal static class PieceTableUpdateAvailablePatch
         HashSet<string> availablePieceNames = GetAvailablePiecePrefabNames(__instance);
         foreach (GameObject prefab in __instance.m_pieces)
         {
-            Piece piece = prefab == null ? null : prefab.GetComponent<Piece>();
+            Piece? piece = prefab == null ? null : prefab.GetComponent<Piece>();
             string prefabName = piece == null ? "" : Utils.GetPrefabName(piece.gameObject);
             if (piece == null ||
                 string.IsNullOrEmpty(prefabName) ||
                 availablePieceNames.Contains(prefabName) ||
-                !VeiledRecipeState.CanPreviewPiece(player, piece))
+                VeiledRecipeState.GetPieceVisibilityState(player, piece) != VeiledRecipeVisibilityState.UnknownPreview)
             {
                 continue;
             }
@@ -59,10 +56,32 @@ internal static class PieceTableUpdateAvailablePatch
 
     private static void EnsureAvailablePieceBuckets(PieceTable table)
     {
-        while (table.m_availablePieces.Count < VeiledRecipeConstants.PieceCategoryBucketCount)
+        int requiredCount = GetRequiredCategoryBucketCount(table);
+        while (table.m_availablePieces.Count < requiredCount)
         {
             table.m_availablePieces.Add(new List<Piece>());
         }
+    }
+
+    private static int GetRequiredCategoryBucketCount(PieceTable table)
+    {
+        int count = table.m_availablePieces.Count;
+        foreach (GameObject prefab in table.m_pieces)
+        {
+            Piece? piece = prefab == null ? null : prefab.GetComponent<Piece>();
+            if (piece == null || piece.m_category == Piece.PieceCategory.All)
+            {
+                continue;
+            }
+
+            int index = (int)piece.m_category;
+            if (index >= 0)
+            {
+                count = Math.Max(count, index + 1);
+            }
+        }
+
+        return count;
     }
 
     private static HashSet<string> GetAvailablePiecePrefabNames(PieceTable table)
@@ -106,7 +125,12 @@ internal static class HudUpdatePieceListPatch
 {
     private static void Postfix(Hud __instance, Player player)
     {
-        List<Piece> pieces = player?.GetBuildPieces();
+        if (player == null)
+        {
+            return;
+        }
+
+        List<Piece>? pieces = player.GetBuildPieces();
         if (pieces == null)
         {
             return;
@@ -115,7 +139,7 @@ internal static class HudUpdatePieceListPatch
         for (int i = 0; i < __instance.m_pieceIcons.Count && i < pieces.Count; i++)
         {
             Piece piece = pieces[i];
-            if (VeiledRecipeState.IsPieceActuallyKnown(player, piece))
+            if (VeiledRecipeState.GetPieceVisibilityState(player, piece) == VeiledRecipeVisibilityState.Known)
             {
                 continue;
             }
@@ -140,7 +164,7 @@ internal static class HudSetupPieceInfoPatch
             return;
         }
 
-        if (VeiledRecipeState.IsPieceActuallyKnown(Player.m_localPlayer, piece))
+        if (VeiledRecipeState.GetPieceVisibilityState(Player.m_localPlayer, piece) == VeiledRecipeVisibilityState.Known)
         {
             __instance.m_buildIcon.color = Color.white;
             return;
@@ -172,14 +196,14 @@ internal static class HudSetupPieceInfoPatch
             }
 
             hud.m_requirementItems[slot].SetActive(true);
-            InventoryGuiUpdateRecipePatch.SetupRequirement(hud.m_requirementItems[slot].transform, requirement, player, piece.FreeBuildKey() == GlobalKeys.NoCraftCost, 0);
+            VeiledRecipeRequirementUi.SetupRequirement(hud.m_requirementItems[slot].transform, requirement, player, piece.FreeBuildKey() == GlobalKeys.NoCraftCost, 0);
             slot++;
         }
 
         if (piece.m_craftingStation != null && slot < hud.m_requirementItems.Length)
         {
             hud.m_requirementItems[slot].SetActive(true);
-            SetupStationRequirement(hud.m_requirementItems[slot].transform, player, piece);
+            VeiledRecipeRequirementUi.SetupPieceStationRequirement(hud.m_requirementItems[slot].transform, player, piece);
             slot++;
         }
 
@@ -189,59 +213,6 @@ internal static class HudSetupPieceInfoPatch
         }
     }
 
-    private static void SetupStationRequirement(Transform root, Player player, Piece piece)
-    {
-        Image icon = InventoryGuiUpdateRecipePatch.FindComponent<Image>(root, VeiledRecipeConstants.RequirementIconChild);
-        TMP_Text name = InventoryGuiUpdateRecipePatch.FindComponent<TMP_Text>(root, VeiledRecipeConstants.RequirementNameChild);
-        TMP_Text amount = InventoryGuiUpdateRecipePatch.FindComponent<TMP_Text>(root, VeiledRecipeConstants.RequirementAmountChild);
-        UITooltip tooltip = root.GetComponent<UITooltip>();
-        bool knownStation = VeiledRecipeState.KnowsPieceStationRequirement(player, piece);
-
-        if (icon != null)
-        {
-            icon.gameObject.SetActive(true);
-            icon.enabled = true;
-            icon.sprite = piece.m_craftingStation.m_icon;
-            icon.color = knownStation ? Color.white : Color.black;
-        }
-
-        if (name != null)
-        {
-            name.gameObject.SetActive(true);
-            name.text = knownStation ? Localization.instance.Localize(piece.m_craftingStation.m_name) : VeiledRecipeState.UnknownNameText;
-            name.color = Color.white;
-        }
-
-        if (amount != null)
-        {
-            amount.gameObject.SetActive(true);
-            if (knownStation)
-            {
-                CraftingStation station = CraftingStation.HaveBuildStationInRange(piece.m_craftingStation.m_name, player.transform.position);
-                if (station != null)
-                {
-                    station.ShowAreaMarker();
-                    amount.text = "";
-                    amount.color = Color.white;
-                }
-                else
-                {
-                    amount.text = Localization.instance.Localize(VeiledRecipeConstants.MenuNoneMessage);
-                    amount.color = Color.white;
-                }
-            }
-            else
-            {
-                amount.text = VeiledRecipeState.UnknownRequirementText;
-                amount.color = Color.white;
-            }
-        }
-
-        if (tooltip != null)
-        {
-            tooltip.m_text = knownStation ? piece.m_craftingStation.m_name : VeiledRecipeState.UnknownNameText;
-        }
-    }
 }
 
 [HarmonyPatch(typeof(Player), nameof(Player.SetupPlacementGhost))]
@@ -249,7 +220,7 @@ internal static class PlayerSetupPlacementGhostPatch
 {
     private static void Postfix(Player __instance)
     {
-        Piece selectedPiece = __instance.GetSelectedPiece();
+        Piece? selectedPiece = __instance.GetSelectedPiece();
         if (selectedPiece == null || VeiledRecipeState.IsPieceActuallyKnown(__instance, selectedPiece))
         {
             return;

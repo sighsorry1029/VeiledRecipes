@@ -1,5 +1,3 @@
-#nullable disable
-
 using HarmonyLib;
 
 namespace VeiledRecipes;

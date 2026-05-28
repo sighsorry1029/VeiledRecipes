@@ -1,15 +1,11 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Timers;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
-using JetBrains.Annotations;
 using ServerSync;
-using UnityEngine;
 
 namespace VeiledRecipes;
 
@@ -17,12 +13,11 @@ namespace VeiledRecipes;
 public class VeiledRecipesPlugin : BaseUnityPlugin
 {
     internal const string ModName = "VeiledRecipes";
-    internal const string ModVersion = "1.0.3";
+    internal const string ModVersion = "1.0.4";
     internal const string Author = "sighsorry";
     public const string ModGUID = $"{Author}.{ModName}";
     private static string ConfigFileName = $"{ModGUID}.cfg";
     private static string ConfigFileFullPath = Paths.ConfigPath + Path.DirectorySeparatorChar + ConfigFileName;
-    internal static string ConnectionError = "";
     private readonly Harmony _harmony = new(ModGUID);
     public static readonly ManualLogSource PluginLogger = BepInEx.Logging.Logger.CreateLogSource(ModName);
     private static readonly ConfigSync ConfigSync = new(ModGUID) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -41,10 +36,6 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
     {
         bool saveOnSet = Config.SaveOnConfigSet;
         Config.SaveOnConfigSet = false;
-
-        // Uncomment the line below to use the LocalizationManager for localizing your mod.
-        // Make sure to populate the English.yml file in the translation folder with your keys to be localized and the values associated before uncommenting!.
-        //Localizer.Load(); // Use this to initialize the LocalizationManager (for more information on LocalizationManager, see the LocalizationManager documentation https://github.com/blaxxun-boop/LocalizationManager#example-project).
 
         _serverConfigLocked = config("1 - General", "Lock Configuration", Toggle.On, "If on, the configuration is locked and can be changed by server admins only.");
         _ = ConfigSync.AddLockingConfigEntry(_serverConfigLocked);
@@ -65,6 +56,8 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
         ShowRecipeUnlockNotifications = config("4 - Client Notifications", "Show Recipe Unlock Notifications", true, "Shows Valheim's unlock popup when a crafting recipe is learned.", synchronizedSetting: false);
         ShowPieceUnlockNotifications = config("4 - Client Notifications", "Show Piece Unlock Notifications", false, "Shows Valheim's unlock popup when a build piece or dish is learned.", synchronizedSetting: false);
         ShowSkillLevelUpNotificationAndEffect = config("4 - Client Notifications", "Show Skill Level Up Notification/Effect", true, "Shows the skill level-up message and VFX/SFX. When disabled, all $msg_skillup alarms and Player.OnSkillLevelup effects are hidden.", synchronizedSetting: false);
+
+        VeiledRecipeInfinityHammerCompat.RegisterKnownPieceOverrides();
 
         Assembly assembly = Assembly.GetExecutingAssembly();
         _harmony.PatchAll(assembly);
@@ -136,13 +129,6 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
         {
             Config.SaveOnConfigSet = originalSaveOnSet;
         }
-        
-        // If you want to do something once localization completes, LocalizationManager has a hook for that.
-        /*Localizer.OnLocalizationComplete += () =>
-        {
-            // Do something
-            PluginLogger.LogDebug("OnLocalizationComplete called");
-        };*/
     }
 
 
@@ -183,53 +169,5 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
         return config(group, name, value, new ConfigDescription(description), synchronizedSetting);
     }
 
-    private class ConfigurationManagerAttributes
-    {
-        [UsedImplicitly] public int? Order = null!;
-        [UsedImplicitly] public bool? Browsable = null!;
-        [UsedImplicitly] public string? Category = null!;
-        [UsedImplicitly] public Action<ConfigEntryBase>? CustomDrawer = null!;
-    }
-
-    class AcceptableShortcuts() : AcceptableValueBase(typeof(KeyboardShortcut))
-    {
-        public override object Clamp(object value) => value;
-        public override bool IsValid(object value) => true;
-
-        public override string ToDescriptionString() => $"# Acceptable values: {string.Join(", ", UnityInput.Current.SupportedKeyCodes)}";
-    }
-
     #endregion
-}
-
-public static class KeyboardExtensions
-{
-    extension(KeyboardShortcut shortcut)
-    {
-        public bool IsKeyDown()
-        {
-            return shortcut.MainKey != KeyCode.None && Input.GetKeyDown(shortcut.MainKey) && shortcut.Modifiers.All(Input.GetKey);
-        }
-
-        public bool IsKeyHeld()
-        {
-            return shortcut.MainKey != KeyCode.None && Input.GetKey(shortcut.MainKey) && shortcut.Modifiers.All(Input.GetKey);
-        }
-    }
-}
-
-public static class ToggleExtentions
-{
-    extension(VeiledRecipesPlugin.Toggle value)
-    {
-        public bool IsOn()
-        {
-            return value == VeiledRecipesPlugin.Toggle.On;
-        }
-
-        public bool IsOff()
-        {
-            return value == VeiledRecipesPlugin.Toggle.Off;
-        }
-    }
 }

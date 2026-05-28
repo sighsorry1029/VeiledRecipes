@@ -113,17 +113,20 @@
         <Compile Include="Properties\AssemblyInfo.cs"/>
         <Compile Include="VeiledRecipeConstants.cs"/>
         <Compile Include="VeiledRecipeInfinityHammerCompat.cs"/>
+        <Compile Include="VeiledRecipeKnowledge.cs"/>
+        <Compile Include="VeiledRecipeKnownPieceOverrides.cs"/>
         <Compile Include="VeiledRecipeNotificationPatches.cs"/>
         <Compile Include="VeiledRecipeNotifications.cs"/>
         <Compile Include="VeiledRecipeOptions.cs"/>
         <Compile Include="VeiledRecipePiecePatches.cs"/>
         <Compile Include="VeiledRecipePreviewBlacklist.cs"/>
+        <Compile Include="VeiledRecipePreviewRules.cs"/>
         <Compile Include="VeiledRecipePatches.cs"/>
         <Compile Include="VeiledRecipeStationPatches.cs"/>
-        <Compile Include="VeiledRecipeState.cs"/>
+        <Compile Include="VeiledRecipeStationKnowledge.cs"/>
         <Compile Include="VeiledRecipeVisibilityState.cs"/>
+        <Compile Include="VeiledRecipeRequirementUi.cs"/>
         <Compile Include="VeiledRecipesCompat.cs"/>
-        <Compile Include="VersionHandshake.cs"/>
     </ItemGroup>
     <ItemGroup>
         <Content Include=".gitignore"/>
