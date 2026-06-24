@@ -16,6 +16,11 @@ internal static class PlayerRecipeRequirementsPatch
             return true;
         }
 
+        if (VeiledRecipeState.ShouldBypassForAdmin(__instance))
+        {
+            return true;
+        }
+
         if (discover && VeiledRecipeState.RequireStationInteractionForRecipeUnlock)
         {
             __result = VeiledRecipeState.CanDiscoverRecipe(__instance, recipe);

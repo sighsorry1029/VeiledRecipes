@@ -20,6 +20,8 @@ public static class VeiledRecipesCompat
 
     public static bool GroupUnknownRecipePreviewsBelowKnownRecipes => VeiledRecipeState.GroupUnknownRecipePreviewsBelowKnownRecipes;
 
+    public static bool IsAdminBypassActive => VeiledRecipeState.ShouldBypassForAdmin(Player.m_localPlayer);
+
     public static VeiledRecipeVisibilityState GetRecipeVisibilityState(Recipe recipe)
     {
         return GetRecipeVisibilityState(Player.m_localPlayer, recipe);

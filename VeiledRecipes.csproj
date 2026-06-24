@@ -112,6 +112,7 @@
         <Compile Include="Plugin.cs"/>
         <Compile Include="Properties\AssemblyInfo.cs"/>
         <Compile Include="VeiledRecipeConstants.cs"/>
+        <Compile Include="VeiledRecipeAdminBypass.cs"/>
         <Compile Include="VeiledRecipeInfinityHammerCompat.cs"/>
         <Compile Include="VeiledRecipeKnowledge.cs"/>
         <Compile Include="VeiledRecipeKnownPieceOverrides.cs"/>

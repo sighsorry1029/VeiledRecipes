@@ -45,6 +45,11 @@ internal static partial class VeiledRecipeState
             return false;
         }
 
+        if (ShouldBypassForAdmin(player))
+        {
+            return true;
+        }
+
         CraftingStation requiredStation = recipe.GetRequiredStation(quality);
         return requiredStation == null || HasKnownRecipeStationLevel(player, requiredStation.m_name, recipe.GetRequiredStationLevel(quality));
     }
@@ -52,6 +57,11 @@ internal static partial class VeiledRecipeState
     internal static bool KnowsPieceStationRequirement(Player player, Piece piece)
     {
         if (player == null || piece == null || piece.m_craftingStation == null)
+        {
+            return true;
+        }
+
+        if (ShouldBypassForAdmin(player))
         {
             return true;
         }

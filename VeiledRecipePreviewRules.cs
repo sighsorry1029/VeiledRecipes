@@ -109,6 +109,11 @@ internal static partial class VeiledRecipeState
             return false;
         }
 
+        if (ShouldBypassForAdmin(player))
+        {
+            return true;
+        }
+
         if (recipe.m_craftingStation != null && !HasKnownRecipeStationLevel(player, recipe.m_craftingStation.m_name, recipe.m_minStationLevel))
         {
             return false;

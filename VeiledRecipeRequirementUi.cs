@@ -91,7 +91,25 @@ internal static class VeiledRecipeRequirementUi
         if (amount != null)
         {
             amount.gameObject.SetActive(true);
-            SetupStationAmount(amount, player, piece, knownStation);
+            if (knownStation)
+            {
+                CraftingStation? station = CraftingStation.HaveBuildStationInRange(piece.m_craftingStation.m_name, player.transform.position);
+                if (station != null)
+                {
+                    station.ShowAreaMarker();
+                    amount.text = "";
+                }
+                else
+                {
+                    amount.text = Localization.instance.Localize(VeiledRecipeConstants.MenuNoneMessage);
+                }
+            }
+            else
+            {
+                amount.text = VeiledRecipeState.UnknownRequirementText;
+            }
+
+            amount.color = Color.white;
         }
 
         if (tooltip != null)
@@ -136,25 +154,4 @@ internal static class VeiledRecipeRequirementUi
         return child == null ? null : child.GetComponent<T>();
     }
 
-    private static void SetupStationAmount(TMP_Text amount, Player player, Piece piece, bool knownStation)
-    {
-        if (!knownStation)
-        {
-            amount.text = VeiledRecipeState.UnknownRequirementText;
-            amount.color = Color.white;
-            return;
-        }
-
-        CraftingStation? station = CraftingStation.HaveBuildStationInRange(piece.m_craftingStation.m_name, player.transform.position);
-        if (station != null)
-        {
-            station.ShowAreaMarker();
-            amount.text = "";
-            amount.color = Color.white;
-            return;
-        }
-
-        amount.text = Localization.instance.Localize(VeiledRecipeConstants.MenuNoneMessage);
-        amount.color = Color.white;
-    }
 }

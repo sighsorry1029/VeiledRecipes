@@ -26,6 +26,6 @@ internal static class CraftingStationUpdateKnownStationsInRangePatch
 {
     private static bool Prefix()
     {
-        return VeiledRecipeState.EnableStationProximityDiscovery;
+        return VeiledRecipeState.EnableStationProximityDiscovery || VeiledRecipeState.ShouldBypassForAdmin(Player.m_localPlayer);
     }
 }

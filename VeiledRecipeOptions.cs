@@ -4,6 +4,8 @@ namespace VeiledRecipes;
 
 internal static partial class VeiledRecipeState
 {
+    internal static bool EnableAdminBypass => VeiledRecipesPlugin.EnableAdminBypass?.Value ?? false;
+
     internal static bool ShowUnknownCraftingRecipes => IsOn(VeiledRecipesPlugin.ShowUnknownCraftingRecipes);
 
     internal static bool ShowUnknownBuildPieces => IsOn(VeiledRecipesPlugin.ShowUnknownBuildPieces);

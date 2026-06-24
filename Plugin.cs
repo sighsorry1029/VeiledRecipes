@@ -13,7 +13,7 @@ namespace VeiledRecipes;
 public class VeiledRecipesPlugin : BaseUnityPlugin
 {
     internal const string ModName = "VeiledRecipes";
-    internal const string ModVersion = "1.0.4";
+    internal const string ModVersion = "1.0.5";
     internal const string Author = "sighsorry";
     public const string ModGUID = $"{Author}.{ModName}";
     private static string ConfigFileName = $"{ModGUID}.cfg";
@@ -24,6 +24,7 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
     private FileSystemWatcher? _watcher;
     private readonly object _reloadLock = new();
     private DateTime _lastConfigReloadTime;
+    private string? _lastConfigFileText;
     private static readonly TimeSpan ConfigReloadDebounce = TimeSpan.FromSeconds(1);
 
     public enum Toggle
@@ -40,6 +41,7 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
         _serverConfigLocked = config("1 - General", "Lock Configuration", Toggle.On, "If on, the configuration is locked and can be changed by server admins only.");
         _ = ConfigSync.AddLockingConfigEntry(_serverConfigLocked);
 
+        EnableAdminBypass = config("2 - Veiled Recipes", "Enable Admin Bypass", false, "If enabled, host/server admins bypass VeiledRecipes masking and unknown recipe/piece placement blocking on this client. Non-admin players can enable this config, but it has no effect.", synchronizedSetting: false);
         ShowUnknownCraftingRecipes = config("2 - Veiled Recipes", "Show Unknown Crafting Recipes", Toggle.On, "Shows crafting recipes at the relevant crafting station before the recipe is fully unlocked.");
         ShowUnknownBuildPieces = config("2 - Veiled Recipes", "Show Unknown Build Pieces", Toggle.On, "Shows build pieces in build-piece tables before the piece is fully unlocked.");
         RequireStationLevelForUnknownCraftingRecipes = config("2 - Veiled Recipes", "Require Station Level For Unknown Crafting Recipes", Toggle.On, "If on, unknown crafting recipe previews are shown only when the current crafting station meets the recipe's required station level.");
@@ -64,10 +66,16 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
         SetupWatcher();
 
         Config.Save();
+        _lastConfigFileText = ReadFileTextIfExists(ConfigFileFullPath);
         if (saveOnSet)
         {
             Config.SaveOnConfigSet = saveOnSet;
         }
+    }
+
+    private void Update()
+    {
+        VeiledRecipeState.UpdateAdminBypassAccess();
     }
 
     private void OnDestroy()
@@ -95,6 +103,8 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
             return;
         }
 
+        _lastConfigReloadTime = now;
+
         lock (_reloadLock)
         {
             if (!File.Exists(ConfigFileFullPath))
@@ -105,8 +115,15 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
 
             try
             {
+                string configFileText = File.ReadAllText(ConfigFileFullPath);
+                if (string.Equals(_lastConfigFileText, configFileText, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
                 PluginLogger.LogDebug("Reloading configuration...");
                 SaveWithRespectToConfigSet(true);
+                _lastConfigFileText = ReadFileTextIfExists(ConfigFileFullPath);
                 PluginLogger.LogInfo("Configuration reload complete.");
             }
             catch (Exception ex)
@@ -114,8 +131,11 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
                 PluginLogger.LogError($"Error reloading configuration: {ex.Message}");
             }
         }
+    }
 
-        _lastConfigReloadTime = now;
+    private static string? ReadFileTextIfExists(string path)
+    {
+        return File.Exists(path) ? File.ReadAllText(path) : null;
     }
 
     private void SaveWithRespectToConfigSet(bool reload = false)
@@ -135,6 +155,7 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
     #region ConfigOptions
 
     private static ConfigEntry<Toggle> _serverConfigLocked = null!;
+    internal static ConfigEntry<bool> EnableAdminBypass = null!;
     internal static ConfigEntry<Toggle> ShowUnknownCraftingRecipes = null!;
     internal static ConfigEntry<Toggle> ShowUnknownBuildPieces = null!;
     internal static ConfigEntry<Toggle> RequireStationLevelForUnknownCraftingRecipes = null!;
