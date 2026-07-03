@@ -157,20 +157,27 @@ internal static class HudUpdatePieceListPatch
 [HarmonyPatch(typeof(Hud), nameof(Hud.SetupPieceInfo))]
 internal static class HudSetupPieceInfoPatch
 {
+    [HarmonyPriority(Priority.Last)]
     private static void Postfix(Hud __instance, Piece piece)
     {
-        if (piece == null || Player.m_localPlayer == null)
+        TryMaskPieceInfo(__instance, Player.m_localPlayer, piece);
+    }
+
+    internal static bool TryMaskPieceInfo(Hud hud, Player player, Piece piece)
+    {
+        if (hud == null || piece == null || player == null)
         {
-            return;
+            return false;
         }
 
-        if (VeiledRecipeState.GetPieceVisibilityState(Player.m_localPlayer, piece) == VeiledRecipeVisibilityState.Known)
+        if (VeiledRecipeState.GetPieceVisibilityState(player, piece) == VeiledRecipeVisibilityState.Known)
         {
-            __instance.m_buildIcon.color = Color.white;
-            return;
+            hud.m_buildIcon.color = Color.white;
+            return false;
         }
 
-        MaskPieceInfo(__instance, Player.m_localPlayer, piece);
+        MaskPieceInfo(hud, player, piece);
+        return true;
     }
 
     private static void MaskPieceInfo(Hud hud, Player player, Piece piece)
@@ -213,6 +220,30 @@ internal static class HudSetupPieceInfoPatch
         }
     }
 
+}
+
+[HarmonyPatch(typeof(Hud), nameof(Hud.UpdateBuild))]
+internal static class HudUpdateBuildMaskPieceInfoPatch
+{
+    [HarmonyPriority(Priority.Last)]
+    private static void Postfix(Hud __instance, Player player)
+    {
+        if (__instance == null || player == null || !player.InPlaceMode())
+        {
+            return;
+        }
+
+        Piece piece = __instance.m_hoveredPiece;
+        if (!piece)
+        {
+            piece = player.GetSelectedPiece();
+        }
+
+        if (piece)
+        {
+            HudSetupPieceInfoPatch.TryMaskPieceInfo(__instance, player, piece);
+        }
+    }
 }
 
 [HarmonyPatch(typeof(Player), nameof(Player.SetupPlacementGhost))]
