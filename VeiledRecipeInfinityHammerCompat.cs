@@ -23,11 +23,10 @@ internal static class VeiledRecipeInfinityHammerCompat
     internal static void RegisterKnownPieceOverrides()
     {
         VeiledRecipeState.RegisterKnownPieceTypeOverride(BuildMenuToolTypeName);
-        VeiledRecipeState.RegisterKnownPieceOverride(IsActiveToolSelectionPiece);
-        VeiledRecipeState.RegisterKnownPieceOverride(IsActiveCommandSelectionPiece);
+        VeiledRecipeState.RegisterKnownPieceOverride(IsKnownActiveSelectionPiece);
     }
 
-    internal static bool IsActiveToolSelectionPiece(Piece piece)
+    private static bool IsKnownActiveSelectionPiece(Piece piece)
     {
         if (piece == null)
         {
@@ -36,37 +35,6 @@ internal static class VeiledRecipeInfinityHammerCompat
 
         EnsureInitialized();
         if (!_loaded || _getSelectionMethod == null || _getSelectedPieceMethod == null || _isToolProperty == null)
-        {
-            return false;
-        }
-
-        try
-        {
-            object? selection = _getSelectionMethod.Invoke(null, null);
-            if (!IsToolSelection(selection))
-            {
-                return false;
-            }
-
-            Piece? selectedPiece = selection == null ? null : _getSelectedPieceMethod.Invoke(selection, null) as Piece;
-            return selectedPiece != null && ReferenceEquals(selectedPiece, piece);
-        }
-        catch (Exception ex)
-        {
-            VeiledRecipesPlugin.PluginLogger.LogDebug($"Infinity Hammer active tool selection check failed: {ex.Message}");
-            return false;
-        }
-    }
-
-    internal static bool IsActiveCommandSelectionPiece(Piece piece)
-    {
-        if (piece == null)
-        {
-            return false;
-        }
-
-        EnsureInitialized();
-        if (!_loaded || _getSelectionMethod == null || _getSelectedPieceMethod == null)
         {
             return false;
         }
@@ -86,7 +54,7 @@ internal static class VeiledRecipeInfinityHammerCompat
                 return false;
             }
 
-            if (ReferenceEquals(selection, _activeCommandSelection))
+            if (IsToolSelection(selection) || ReferenceEquals(selection, _activeCommandSelection))
             {
                 return true;
             }
@@ -101,7 +69,7 @@ internal static class VeiledRecipeInfinityHammerCompat
         }
         catch (Exception ex)
         {
-            VeiledRecipesPlugin.PluginLogger.LogDebug($"Infinity Hammer command selection check failed: {ex.Message}");
+            VeiledRecipesPlugin.PluginLogger.LogDebug($"Infinity Hammer active selection check failed: {ex.Message}");
             return false;
         }
     }

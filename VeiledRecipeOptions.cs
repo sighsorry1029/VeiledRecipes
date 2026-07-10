@@ -28,7 +28,7 @@ internal static partial class VeiledRecipeState
 
     internal static bool ShowRecipeUnlockNotifications => VeiledRecipesPlugin.ShowRecipeUnlockNotifications?.Value ?? true;
 
-    internal static bool ShowPieceUnlockNotifications => VeiledRecipesPlugin.ShowPieceUnlockNotifications?.Value ?? true;
+    internal static bool ShowPieceUnlockNotifications => VeiledRecipesPlugin.ShowPieceUnlockNotifications?.Value ?? false;
 
     internal static bool ShowSkillLevelUpNotificationAndEffect => VeiledRecipesPlugin.ShowSkillLevelUpNotificationAndEffect?.Value ?? true;
 

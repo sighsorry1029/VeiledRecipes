@@ -65,17 +65,18 @@ internal static class PlayerGetAvailableRecipesPatch
 [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.AddRecipeToList))]
 internal static class InventoryGuiAddRecipeToListPatch
 {
-    private static void Prefix(Player player, Recipe recipe, ref bool canCraft)
+    private static void Prefix(Player player, Recipe recipe, ref bool canCraft, out bool __state)
     {
-        if (!VeiledRecipeState.IsRecipeActuallyKnown(player, recipe))
+        __state = VeiledRecipeState.IsRecipeActuallyKnown(player, recipe);
+        if (!__state)
         {
             canCraft = false;
         }
     }
 
-    private static void Postfix(InventoryGui __instance, Player player, Recipe recipe, ItemDrop.ItemData item)
+    private static void Postfix(InventoryGui __instance, Recipe recipe, ItemDrop.ItemData item, bool __state)
     {
-        if (VeiledRecipeState.IsRecipeActuallyKnown(player, recipe))
+        if (__state)
         {
             return;
         }

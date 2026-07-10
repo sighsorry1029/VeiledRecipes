@@ -127,7 +127,11 @@ These options are synced through ServerSync when configuration locking is enable
 
 ## Client-Side Config
 
-These options are not synced. Each player can choose their own UI behavior.
+These options are not synced. Each player can choose their own client behavior.
+
+- `Enable Admin Bypass`
+  Lets a verified host or server admin bypass recipe and build-piece masking, crafting restrictions, and placement restrictions on this client. Enabling it as a non-admin has no effect.
+  Default: `false`
 
 - `Group Unknown Recipe Previews Below Known Recipes`
   Groups masked crafting recipe previews below actually unlocked recipes in crafting station recipe lists.
@@ -188,6 +192,7 @@ Useful members include:
 - `UnknownDescriptionText`
 - `UnknownRequirementText`
 - `GroupUnknownRecipePreviewsBelowKnownRecipes`
+- `IsAdminBypassActive`
 - `GetRecipeVisibilityState(recipe)`
 - `GetRecipeVisibilityState(player, recipe)`
 - `IsUnknownRecipePreview(recipe)`
@@ -206,6 +211,9 @@ Useful members include:
 - `KnowsRecipeStationRequirement(player, recipe, quality)`
 - `KnowsPieceStationRequirement(piece)`
 - `KnowsPieceStationRequirement(player, piece)`
+- `RegisterKnownPieceOverride(predicate)` / `UnregisterKnownPieceOverride(predicate)`
+- `RegisterKnownPiecePrefabOverride(prefabName)` / `UnregisterKnownPiecePrefabOverride(prefabName)`
+- `RegisterKnownPieceTypeOverride(typeName)` / `UnregisterKnownPieceTypeOverride(typeName)`
 
 Soft dependency GUID:
 
@@ -215,4 +223,14 @@ sighsorry.VeiledRecipes
 
 ## Git
 
-https://github.com/sighsorry1029/SecretRecipes
+https://github.com/sighsorry1029/VeiledRecipes
+
+## Building
+
+Normal Debug and Release builds do not copy the DLL into the live Valheim installation. To opt into local deployment, pass the `DeployToGame` MSBuild property:
+
+```powershell
+dotnet build .\VeiledRecipes.csproj -c Debug -p:DeployToGame=true
+```
+
+Release builds still create the Thunderstore and Nexus zip packages normally.

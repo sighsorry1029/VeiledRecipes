@@ -1,3 +1,4 @@
+using System;
 using HarmonyLib;
 
 namespace VeiledRecipes;
@@ -7,13 +8,23 @@ internal static class MessageHudQueueUnlockMsgPatch
 {
     private static bool Prefix(MessageHud __instance, string topic, string description)
     {
-        if (VeiledRecipeState.ShouldShowUnlockNotification(topic))
+        if (ShouldShowUnlockNotification(topic))
         {
             return true;
         }
 
         __instance.AddLog($"{topic}: {description}");
         return false;
+    }
+
+    private static bool ShouldShowUnlockNotification(string topic)
+    {
+        return (topic ?? "").Trim() switch
+        {
+            VeiledRecipeConstants.NewRecipeMessage => VeiledRecipeState.ShowRecipeUnlockNotifications,
+            VeiledRecipeConstants.NewPieceMessage or VeiledRecipeConstants.NewDishMessage => VeiledRecipeState.ShowPieceUnlockNotifications,
+            _ => true
+        };
     }
 }
 
@@ -22,7 +33,7 @@ internal static class PlayerSkillLevelUpEffectsPatch
 {
     private static bool Prefix()
     {
-        return VeiledRecipeState.ShouldShowSkillLevelUpEffect();
+        return VeiledRecipeState.ShowSkillLevelUpNotificationAndEffect;
     }
 }
 
@@ -31,6 +42,7 @@ internal static class PlayerSkillNotificationAlarmPatch
 {
     private static bool Prefix(string msg)
     {
-        return VeiledRecipeState.ShouldShowSkillLevelUpNotification(msg);
+        return VeiledRecipeState.ShowSkillLevelUpNotificationAndEffect ||
+               !(msg ?? "").Trim().StartsWith(VeiledRecipeConstants.SkillUpMessagePrefix, StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -2,92 +2,82 @@ namespace VeiledRecipes;
 
 internal static partial class VeiledRecipeState
 {
-    internal static bool CanPreviewRecipe(Player player, Recipe recipe)
-    {
-        if (!ShowUnknownCraftingRecipes || player == null || recipe == null || recipe.m_item == null)
-        {
-            return false;
-        }
-
-        if (IsRecipeActuallyKnown(player, recipe) || !IsRecipeEnabledForPlayer(player, recipe))
-        {
-            return false;
-        }
-
-        if (IsRecipePreviewBlacklisted(recipe))
-        {
-            return false;
-        }
-
-        if (HasPreviewBlacklistedRequirement(recipe.m_resources))
-        {
-            return false;
-        }
-
-        if (!DlcInstalled(recipe.m_item.m_itemData.m_shared.m_dlc))
-        {
-            return false;
-        }
-
-        if (!PassesCraftFilter(recipe))
-        {
-            return false;
-        }
-
-        bool checkStationLevel = RequireStationLevelForUnknownCraftingRecipes && recipe.GetRequiredStation(1) != null;
-        return player.RequiredCraftingStation(recipe, 1, checkStationLevel);
-    }
-
-    internal static bool CanPreviewPiece(Player player, Piece piece)
-    {
-        if (!ShowUnknownBuildPieces || player == null || piece == null)
-        {
-            return false;
-        }
-
-        if (IsPieceActuallyKnown(player, piece) || !IsPieceEnabledForPlayer(player, piece))
-        {
-            return false;
-        }
-
-        if (IsPiecePreviewBlacklisted(piece))
-        {
-            return false;
-        }
-
-        if (HasPreviewBlacklistedRequirement(piece.m_resources))
-        {
-            return false;
-        }
-
-        if (RequireStationKnowledgeForUnknownBuildPieces && !KnowsPieceStationRequirement(player, piece))
-        {
-            return false;
-        }
-
-        return DlcInstalled(piece.m_dlc);
-    }
-
     internal static VeiledRecipeVisibilityState GetRecipeVisibilityState(Player player, Recipe recipe)
     {
+        if (player == null || recipe == null || recipe.m_item == null)
+        {
+            return VeiledRecipeVisibilityState.Hidden;
+        }
+
         if (IsRecipeActuallyKnown(player, recipe))
         {
             return VeiledRecipeVisibilityState.Known;
         }
 
-        return CanPreviewRecipe(player, recipe)
+        if (!ShowUnknownCraftingRecipes || !IsRecipeEnabledForPlayer(player, recipe))
+        {
+            return VeiledRecipeVisibilityState.Hidden;
+        }
+
+        if (IsRecipePreviewBlacklisted(recipe))
+        {
+            return VeiledRecipeVisibilityState.Hidden;
+        }
+
+        if (HasPreviewBlacklistedRequirement(recipe.m_resources))
+        {
+            return VeiledRecipeVisibilityState.Hidden;
+        }
+
+        if (!DlcInstalled(recipe.m_item.m_itemData.m_shared.m_dlc))
+        {
+            return VeiledRecipeVisibilityState.Hidden;
+        }
+
+        if (!PassesCraftFilter(recipe))
+        {
+            return VeiledRecipeVisibilityState.Hidden;
+        }
+
+        bool checkStationLevel = RequireStationLevelForUnknownCraftingRecipes && recipe.GetRequiredStation(1) != null;
+        return player.RequiredCraftingStation(recipe, 1, checkStationLevel)
             ? VeiledRecipeVisibilityState.UnknownPreview
             : VeiledRecipeVisibilityState.Hidden;
     }
 
     internal static VeiledRecipeVisibilityState GetPieceVisibilityState(Player player, Piece piece)
     {
+        if (player == null || piece == null)
+        {
+            return VeiledRecipeVisibilityState.Hidden;
+        }
+
         if (IsPieceActuallyKnown(player, piece))
         {
             return VeiledRecipeVisibilityState.Known;
         }
 
-        return CanPreviewPiece(player, piece)
+        if (!ShowUnknownBuildPieces || !IsPieceEnabledForPlayer(player, piece))
+        {
+            return VeiledRecipeVisibilityState.Hidden;
+        }
+
+        if (IsPiecePreviewBlacklisted(piece))
+        {
+            return VeiledRecipeVisibilityState.Hidden;
+        }
+
+        if (HasPreviewBlacklistedRequirement(piece.m_resources))
+        {
+            return VeiledRecipeVisibilityState.Hidden;
+        }
+
+        if (RequireStationKnowledgeForUnknownBuildPieces && !KnowsPieceStationRequirement(player, piece))
+        {
+            return VeiledRecipeVisibilityState.Hidden;
+        }
+
+        return DlcInstalled(piece.m_dlc)
             ? VeiledRecipeVisibilityState.UnknownPreview
             : VeiledRecipeVisibilityState.Hidden;
     }

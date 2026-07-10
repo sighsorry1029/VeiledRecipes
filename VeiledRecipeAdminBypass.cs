@@ -8,8 +8,10 @@ namespace VeiledRecipes;
 internal static partial class VeiledRecipeState
 {
     private const string AdminProbePrefix = "veiledrecipes_admintest_";
-    private const float AdminProbeRetrySeconds = 5f;
+    private const float AdminProbeTransientRetrySeconds = 5f;
+    private const float AdminProbeDeniedRetrySeconds = 60f;
     private const float AdminProbeTimeoutSeconds = 3f;
+    private const float AdminProbeRevalidationSeconds = 60f;
 
     private static ZNet? _adminProbeZNet;
     private static long _adminProbePlayerId;
@@ -27,7 +29,21 @@ internal static partial class VeiledRecipeState
             return;
         }
 
-        PrimeAdminBypassProbe();
+        ZNet? znet = ZNet.instance;
+        if (znet == null)
+        {
+            ResetAdminBypassProbe();
+            return;
+        }
+
+        UpdateAdminBypassProbeState(znet);
+        if (znet.IsServer() || znet.LocalPlayerIsAdminOrHost())
+        {
+            ClearAdminBypassProbeResult();
+            return;
+        }
+
+        StartAdminBypassProbe(znet);
     }
 
     internal static bool ShouldBypassForAdmin(Player? player)
@@ -37,7 +53,20 @@ internal static partial class VeiledRecipeState
             return false;
         }
 
-        return HasAdminBypassAccess();
+        ZNet? znet = ZNet.instance;
+        if (znet == null)
+        {
+            return false;
+        }
+
+        if (znet.IsServer() || znet.LocalPlayerIsAdminOrHost())
+        {
+            return true;
+        }
+
+        return ReferenceEquals(_adminProbeZNet, znet) &&
+               _adminProbePlayerId == GetLocalPlayerId() &&
+               _adminProbeVerified == true;
     }
 
     internal static bool HandleAdminBypassRemotePrint(string text)
@@ -49,70 +78,21 @@ internal static partial class VeiledRecipeState
 
         if (string.Equals(text, $"Unbanning user {_adminProbeToken}", StringComparison.Ordinal))
         {
-            MarkAdminBypassProbeSuccess(ZNet.instance);
+            MarkAdminBypassProbeSuccess();
             return true;
         }
 
         if (string.Equals(text, "You are not admin", StringComparison.Ordinal))
         {
-            _adminProbePending = false;
-            _adminProbeVerified = false;
-            _adminProbeNextTime = Time.realtimeSinceStartup + AdminProbeRetrySeconds;
+            MarkAdminBypassProbeFailure(AdminProbeDeniedRetrySeconds);
             return true;
         }
 
         return false;
     }
 
-    private static bool HasAdminBypassAccess()
+    private static void UpdateAdminBypassProbeState(ZNet znet)
     {
-        ZNet? znet = ZNet.instance;
-        if (znet == null)
-        {
-            return false;
-        }
-
-        if (znet.IsServer() || znet.LocalPlayerIsAdminOrHost())
-        {
-            MarkAdminBypassProbeSuccess(znet);
-            return true;
-        }
-
-        UpdateAdminBypassProbeState();
-        if (_adminProbeVerified == true)
-        {
-            return true;
-        }
-
-        StartAdminBypassProbe(force: false);
-        return false;
-    }
-
-    private static void PrimeAdminBypassProbe()
-    {
-        ZNet? znet = ZNet.instance;
-        if (znet == null)
-        {
-            ResetAdminBypassProbe();
-            return;
-        }
-
-        if (znet.IsServer() || znet.LocalPlayerIsAdminOrHost())
-        {
-            MarkAdminBypassProbeSuccess(znet);
-            return;
-        }
-
-        UpdateAdminBypassProbeState();
-        if (_adminProbeVerified == null)
-        {
-            StartAdminBypassProbe(force: false);
-        }
-    }
-
-    private static void UpdateAdminBypassProbeState()
-    {
-        ZNet? znet = ZNet.instance;
         long playerId = GetLocalPlayerId();
         if (!ReferenceEquals(_adminProbeZNet, znet) || _adminProbePlayerId != playerId)
         {
@@ -124,28 +104,19 @@ internal static partial class VeiledRecipeState
 
         if (_adminProbePending && Time.realtimeSinceStartup > _adminProbeDeadline)
         {
-            _adminProbePending = false;
-            _adminProbeVerified = false;
-            _adminProbeNextTime = Time.realtimeSinceStartup + AdminProbeRetrySeconds;
+            MarkAdminBypassProbeFailure(AdminProbeTransientRetrySeconds);
         }
     }
 
-    private static void StartAdminBypassProbe(bool force)
+    private static void StartAdminBypassProbe(ZNet znet)
     {
-        ZNet? znet = ZNet.instance;
-        if (znet == null || znet.IsServer())
-        {
-            return;
-        }
-
-        UpdateAdminBypassProbeState();
         if (_adminProbePending || string.IsNullOrWhiteSpace(_adminProbeToken))
         {
             return;
         }
 
         float now = Time.realtimeSinceStartup;
-        if (!force && now < _adminProbeNextTime)
+        if (now < _adminProbeNextTime)
         {
             return;
         }
@@ -154,25 +125,38 @@ internal static partial class VeiledRecipeState
         {
             _adminProbePending = true;
             _adminProbeDeadline = now + AdminProbeTimeoutSeconds;
-            _adminProbeNextTime = now + AdminProbeRetrySeconds;
+            _adminProbeNextTime = now + AdminProbeTransientRetrySeconds;
             znet.Unban(_adminProbeToken);
         }
         catch (Exception ex)
         {
-            _adminProbePending = false;
-            _adminProbeVerified = false;
-            _adminProbeNextTime = Time.realtimeSinceStartup + AdminProbeRetrySeconds;
+            MarkAdminBypassProbeFailure(AdminProbeTransientRetrySeconds);
             VeiledRecipesPlugin.PluginLogger.LogDebug($"Admin bypass probe failed: {ex.Message}");
         }
     }
 
-    private static void MarkAdminBypassProbeSuccess(ZNet? znet)
+    private static void MarkAdminBypassProbeSuccess()
     {
-        _adminProbeZNet = znet;
-        _adminProbePlayerId = GetLocalPlayerId();
         _adminProbePending = false;
         _adminProbeVerified = true;
-        _adminProbeNextTime = Time.realtimeSinceStartup + AdminProbeRetrySeconds;
+        _adminProbeNextTime = Time.realtimeSinceStartup + AdminProbeRevalidationSeconds;
+        _adminProbeDeadline = 0f;
+    }
+
+    private static void MarkAdminBypassProbeFailure(float retrySeconds)
+    {
+        _adminProbePending = false;
+        _adminProbeVerified = false;
+        _adminProbeNextTime = Time.realtimeSinceStartup + retrySeconds;
+        _adminProbeDeadline = 0f;
+    }
+
+    private static void ClearAdminBypassProbeResult()
+    {
+        _adminProbePending = false;
+        _adminProbeVerified = null;
+        _adminProbeNextTime = 0f;
+        _adminProbeDeadline = 0f;
     }
 
     private static void ResetAdminBypassProbe()

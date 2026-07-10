@@ -54,12 +54,7 @@ internal static partial class VeiledRecipeState
             return true;
         }
 
-        if (HasKnownPieceOverride(piece))
-        {
-            return true;
-        }
-
-        return player.m_knownRecipes.Contains(piece.m_name);
+        return player.m_knownRecipes.Contains(piece.m_name) || HasKnownPieceOverride(piece);
     }
 
     internal static bool IsMaterialKnown(Player player, Piece.Requirement requirement)
