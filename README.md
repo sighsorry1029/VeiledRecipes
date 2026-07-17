@@ -30,6 +30,7 @@ By default, players don't have to interact with the crafting station to unlock t
 - Reveals known materials and station information gradually.
 - Blocks crafting and placement for entries that are only previews.
 - Supports strict station discovery rules for recipe unlocks.
+- Preserves recipe-less upgrade, socketing, and runtime build workflows added by other mods.
 - Provides server-synced blacklist controls for item outputs, build pieces, and requirement ingredients.
 - Offers client-side options for recipe grouping and noisy notifications.
 - Exposes a compatibility API for custom crafting UI mods.
@@ -62,6 +63,12 @@ Until the piece is actually unlocked:
 - Placement is denied with Valheim's missing requirement message.
 
 Once Valheim considers the piece known, VeiledRecipes stops masking it.
+
+## Recipe-Less Mod Workflows
+
+Some mods let players upgrade or socket loot-only items without providing an unlockable crafting recipe. VeiledRecipes leaves these owned-item operations unmasked when no enabled or currently seasonal ObjectDB recipe can be learned for that item. A recipe-less entry without an existing target item is still treated as crafting and remains blocked, so this exception does not create a free crafting path.
+
+Runtime pieces that are not registered in a regular `PieceTable.m_pieces` list, such as generated blueprint proxies, are also left unmasked. Regular registered build pieces continue to follow normal knowledge and preview rules.
 
 ## Station Discovery
 
@@ -175,6 +182,8 @@ SwordCheat, SledgeCheat
 ## Compatibility API
 
 VeiledRecipes patches Valheim's vanilla crafting and build-piece UI. Mods that draw their own recipe UI may need to call the public API and mask their own controls.
+
+Use the `ShouldMask*` methods for display and action decisions. `IsRecipeActuallyKnown` and `IsPieceActuallyKnown` report player knowledge, while `ShouldMaskRecipePair` also considers the pair's target item so recipe-less upgrade and socket operations are handled correctly.
 
 API type:
 

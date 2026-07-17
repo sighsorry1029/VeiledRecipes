@@ -13,7 +13,7 @@ namespace VeiledRecipes;
 public class VeiledRecipesPlugin : BaseUnityPlugin
 {
     internal const string ModName = "VeiledRecipes";
-    internal const string ModVersion = "1.0.7";
+    internal const string ModVersion = "1.0.8";
     internal const string Author = "sighsorry";
     public const string ModGUID = $"{Author}.{ModName}";
     private static string ConfigFileName = $"{ModGUID}.cfg";

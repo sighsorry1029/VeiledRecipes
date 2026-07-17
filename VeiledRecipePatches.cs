@@ -27,7 +27,7 @@ internal static class PlayerRecipeRequirementsPatch
             return false;
         }
 
-        if (!discover && !VeiledRecipeState.IsRecipeActuallyKnown(__instance, recipe))
+        if (!discover && VeiledRecipeState.RequiresRecipeKnowledge(__instance, recipe))
         {
             __result = false;
             return false;
@@ -65,10 +65,10 @@ internal static class PlayerGetAvailableRecipesPatch
 [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.AddRecipeToList))]
 internal static class InventoryGuiAddRecipeToListPatch
 {
-    private static void Prefix(Player player, Recipe recipe, ref bool canCraft, out bool __state)
+    private static void Prefix(Player player, Recipe recipe, ItemDrop.ItemData item, ref bool canCraft, out bool __state)
     {
-        __state = VeiledRecipeState.IsRecipeActuallyKnown(player, recipe);
-        if (!__state)
+        __state = VeiledRecipeState.ShouldMaskRecipe(player, recipe, item);
+        if (__state)
         {
             canCraft = false;
         }
@@ -76,7 +76,7 @@ internal static class InventoryGuiAddRecipeToListPatch
 
     private static void Postfix(InventoryGui __instance, Recipe recipe, ItemDrop.ItemData item, bool __state)
     {
-        if (__state)
+        if (!__state)
         {
             return;
         }
@@ -155,7 +155,8 @@ internal static class InventoryGuiUpdateRecipeListPatch
 
         foreach (InventoryGui.RecipeDataPair pair in __instance.m_availableRecipes)
         {
-            if (VeiledRecipeState.IsUnknownRecipePreview(player, pair.Recipe))
+            if (VeiledRecipeState.ShouldMaskRecipe(player, pair.Recipe, pair.ItemData) &&
+                VeiledRecipeState.IsUnknownRecipePreview(player, pair.Recipe))
             {
                 unknownPreviews.Add(pair);
             }
@@ -195,7 +196,7 @@ internal static class InventoryGuiUpdateRecipePatch
             return;
         }
 
-        if (VeiledRecipeState.IsRecipeActuallyKnown(player, recipe))
+        if (!VeiledRecipeState.ShouldMaskRecipe(player, recipe, __instance.m_selectedRecipe.ItemData))
         {
             __instance.m_recipeIcon.color = Color.white;
             return;
@@ -278,7 +279,9 @@ internal static class InventoryGuiOnCraftPressedPatch
     {
         Recipe? recipe = __instance.m_selectedRecipe.Recipe;
         Player? player = Player.m_localPlayer;
-        if (recipe != null && player != null && !VeiledRecipeState.IsRecipeActuallyKnown(player, recipe))
+        if (recipe != null &&
+            player != null &&
+            VeiledRecipeState.ShouldMaskRecipe(player, recipe, __instance.m_selectedRecipe.ItemData))
         {
             player.Message(MessageHud.MessageType.Center, VeiledRecipeConstants.MissingRequirementMessage);
             return false;
@@ -294,7 +297,7 @@ internal static class InventoryGuiDoCraftingPatch
     private static bool Prefix(InventoryGui __instance, Player player)
     {
         Recipe? recipe = __instance.m_craftRecipe;
-        if (recipe != null && !VeiledRecipeState.IsRecipeActuallyKnown(player, recipe))
+        if (recipe != null && VeiledRecipeState.ShouldMaskRecipe(player, recipe, __instance.m_craftUpgradeItem))
         {
             __instance.m_craftTimer = -1f;
             player.Message(MessageHud.MessageType.Center, VeiledRecipeConstants.MissingRequirementMessage);

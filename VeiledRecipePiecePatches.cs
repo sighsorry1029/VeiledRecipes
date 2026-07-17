@@ -15,7 +15,7 @@ internal static class PlayerPieceRequirementsPatch
             return true;
         }
 
-        if (mode != Player.RequirementMode.IsKnown && !VeiledRecipeState.IsPieceActuallyKnown(__instance, piece))
+        if (mode != Player.RequirementMode.IsKnown && VeiledRecipeState.ShouldMaskPiece(__instance, piece))
         {
             __result = false;
             return false;
@@ -28,6 +28,11 @@ internal static class PlayerPieceRequirementsPatch
 [HarmonyPatch(typeof(PieceTable), nameof(PieceTable.UpdateAvailable))]
 internal static class PieceTableUpdateAvailablePatch
 {
+    private static void Prefix(PieceTable __instance)
+    {
+        VeiledRecipeState.RegisterBuildPieceTable(__instance);
+    }
+
     private static void Postfix(PieceTable __instance, Player player)
     {
         if (!VeiledRecipeState.ShowUnknownBuildPieces || player == null)
@@ -252,7 +257,7 @@ internal static class PlayerSetupPlacementGhostPatch
     private static void Postfix(Player __instance)
     {
         Piece? selectedPiece = __instance.GetSelectedPiece();
-        if (selectedPiece == null || VeiledRecipeState.IsPieceActuallyKnown(__instance, selectedPiece))
+        if (selectedPiece == null || !VeiledRecipeState.ShouldMaskPiece(__instance, selectedPiece))
         {
             return;
         }
@@ -275,7 +280,7 @@ internal static class PlayerTryPlacePiecePatch
 {
     private static bool Prefix(Player __instance, Piece piece, ref bool __result)
     {
-        if (piece != null && !VeiledRecipeState.IsPieceActuallyKnown(__instance, piece))
+        if (piece != null && VeiledRecipeState.ShouldMaskPiece(__instance, piece))
         {
             __instance.Message(MessageHud.MessageType.Center, VeiledRecipeConstants.MissingRequirementMessage);
             __result = false;

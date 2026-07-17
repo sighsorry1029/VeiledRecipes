@@ -9,7 +9,7 @@ internal static partial class VeiledRecipeState
             return VeiledRecipeVisibilityState.Hidden;
         }
 
-        if (IsRecipeActuallyKnown(player, recipe))
+        if (!ShouldMaskRecipe(player, recipe))
         {
             return VeiledRecipeVisibilityState.Known;
         }
@@ -52,7 +52,7 @@ internal static partial class VeiledRecipeState
             return VeiledRecipeVisibilityState.Hidden;
         }
 
-        if (IsPieceActuallyKnown(player, piece))
+        if (!ShouldMaskPiece(player, piece))
         {
             return VeiledRecipeVisibilityState.Known;
         }

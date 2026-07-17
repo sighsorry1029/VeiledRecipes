@@ -73,7 +73,7 @@ public static class VeiledRecipesCompat
 
     public static bool ShouldMaskRecipe(Player player, Recipe recipe)
     {
-        return player != null && recipe != null && !VeiledRecipeState.IsRecipeActuallyKnown(player, recipe);
+        return player != null && recipe != null && VeiledRecipeState.ShouldMaskRecipe(player, recipe);
     }
 
     public static bool ShouldMaskRecipePair(InventoryGui.RecipeDataPair pair)
@@ -83,7 +83,9 @@ public static class VeiledRecipesCompat
 
     public static bool ShouldMaskRecipePair(Player player, InventoryGui.RecipeDataPair pair)
     {
-        return ShouldMaskRecipe(player, pair.Recipe);
+        return player != null &&
+               pair.Recipe != null &&
+               VeiledRecipeState.ShouldMaskRecipe(player, pair.Recipe, pair.ItemData);
     }
 
     public static bool IsRecipeActuallyKnown(Player player, Recipe recipe)
@@ -98,7 +100,7 @@ public static class VeiledRecipesCompat
 
     public static bool ShouldMaskPiece(Player player, Piece piece)
     {
-        return player != null && piece != null && !VeiledRecipeState.IsPieceActuallyKnown(player, piece);
+        return player != null && piece != null && VeiledRecipeState.ShouldMaskPiece(player, piece);
     }
 
     public static void RegisterKnownPieceOverride(Func<Piece, bool> predicate)
