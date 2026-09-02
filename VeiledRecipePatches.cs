@@ -102,7 +102,7 @@ internal static class InventoryGuiAddRecipeToListPatch
         return null;
     }
 
-    private static void MaskRecipeListElement(GameObject element, Recipe recipe)
+    internal static void MaskRecipeListElement(GameObject element, Recipe recipe)
     {
         Image? icon = VeiledRecipeRequirementUi.FindComponent<Image>(element.transform, VeiledRecipeConstants.RecipeIconChild);
         if (icon != null)
@@ -140,11 +140,17 @@ internal static class InventoryGuiAddRecipeToListPatch
 [HarmonyPatch(typeof(InventoryGui), "UpdateRecipeList", typeof(List<Recipe>))]
 internal static class InventoryGuiUpdateRecipeListPatch
 {
+    [HarmonyAfter(VeiledRecipeAaaCraftingCompat.PluginGuid)]
     private static void Postfix(InventoryGui __instance)
     {
         Player player = Player.m_localPlayer;
+        if (player == null)
+        {
+            return;
+        }
+
+        VeiledRecipeAaaCraftingCompat.MaskRecipeList(__instance, player);
         if (!VeiledRecipeState.GroupUnknownRecipePreviewsBelowKnownRecipes ||
-            player == null ||
             __instance.m_availableRecipes.Count <= 1)
         {
             return;
@@ -175,12 +181,29 @@ internal static class InventoryGuiUpdateRecipeListPatch
         __instance.m_availableRecipes.AddRange(visibleRecipes);
         __instance.m_availableRecipes.AddRange(unknownPreviews);
 
+        LayoutGroup? layout = __instance.m_recipeListRoot.GetComponent<LayoutGroup>();
+        bool usesLayout = layout != null && layout.isActiveAndEnabled;
         for (int i = 0; i < __instance.m_availableRecipes.Count; i++)
         {
-            if (__instance.m_availableRecipes[i].InterfaceElement.transform is RectTransform rectTransform)
+            GameObject? element = __instance.m_availableRecipes[i].InterfaceElement;
+            if (element == null)
+            {
+                continue;
+            }
+
+            if (usesLayout)
+            {
+                element.transform.SetSiblingIndex(i);
+            }
+            else if (element.transform is RectTransform rectTransform)
             {
                 rectTransform.anchoredPosition = new Vector2(0f, i * -__instance.m_recipeListSpace);
             }
+        }
+
+        if (usesLayout)
+        {
+            LayoutRebuilder.MarkLayoutForRebuild(__instance.m_recipeListRoot);
         }
     }
 }
@@ -188,6 +211,7 @@ internal static class InventoryGuiUpdateRecipeListPatch
 [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.UpdateRecipe))]
 internal static class InventoryGuiUpdateRecipePatch
 {
+    [HarmonyAfter(VeiledRecipeAaaCraftingCompat.PluginGuid)]
     private static void Postfix(InventoryGui __instance, Player player)
     {
         Recipe? recipe = __instance.m_selectedRecipe.Recipe;

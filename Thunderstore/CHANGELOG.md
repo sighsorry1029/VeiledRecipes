@@ -1,11 +1,58 @@
-| `Version` | `Update Notes`    |
-|-----------|-------------------|
-| 1.0.8     | - Kept loot-only and upgrade-only items unmasked and usable in owned-item upgrade/socket workflows when no enabled crafting recipe can be learned.<br>- Kept runtime pieces without a regular PieceTable registration unmasked, including generated InfinityHammer blueprint proxies.<br>- Separated actual recipe knowledge from masking/action policy and made RecipeDataPair compatibility checks target-item aware while preserving normal craft blocking. |
-| 1.0.7     | - Simplified recipe and build-piece visibility evaluation while reducing repeated known-state and InfinityHammer compatibility checks.<br>- Refined Admin Bypass probing with cached lookups, separate denied/transient retry intervals, and periodic revalidation.<br>- Removed unused localization template code and colocated notification policy with its patches.<br>- Hardened release packaging with opt-in live deployment, validated manifest updates, and refreshed documentation. |
-| 1.0.6     | - Added AzuCraftyBoxes compatibility so unknown build-piece names and descriptions stay veiled after build HUD count updates. |
-| 1.0.5     | - Added a client-side Admin Bypass option that only takes effect for verified host/server admins.<br>- Fixed InfinityHammer command selections losing their placement ghost and failing with missing-info behavior.<br>- Improved config reload debounce and simplified piece station requirement UI handling. |
-| 1.0.4     | - Simplified internal recipe, piece, station, and override state into focused files.<br>- Removed redundant custom version-handshake code in favor of ServerSync handling.<br>- Removed nullable-disabled patch files and shared requirement UI masking helpers. |
-| 1.0.3     | - Fixed InfinityHammer active tool selections staying veiled and unusable.<br>- Limited the InfinityHammer known-piece override to tool selections so normal unknown pieces remain veiled after selection. |
-| 1.0.2     | - Kept InfinityHammer admin menu tools unmasked by default.<br>- Added type-based known-piece override API for compatibility mods.<br>- Improved admin tool compatibility for ZoneSavior. |
-| 1.0.1     | - Added a synced option to require crafting station knowledge before unknown build-piece previews appear.<br>- Added compat APIs for masking checks and known-piece overrides.<br>- Added Homestead support so blueprint/tool pseudo-pieces can stay unmasked. |
-| 1.0.0     | - Initial Release |
+# Changelog
+
+## 1.0.9
+
+- Added automatic AAA Crafting compatibility for veiled recipe names, icons, output counts, and hover tooltips in list and grid layouts.
+- Restored open hover tooltips when recipes are learned or admin bypass changes, while preserving the original tooltip text.
+- Blocked tracking unknown recipes and temporarily hid previously tracked unknown entries without removing them.
+- Preserved AAA's grid layout when grouping unknown previews and added compatibility regression checks. Existing compatibility APIs remain available.
+
+## 1.0.8
+
+- Kept loot-only and upgrade-only items unmasked and usable in owned-item upgrade/socket workflows when no enabled crafting recipe can be learned.
+- Kept runtime pieces without a regular PieceTable registration unmasked, including generated InfinityHammer blueprint proxies.
+- Separated actual recipe knowledge from masking/action policy and made RecipeDataPair compatibility checks target-item aware while preserving normal craft blocking.
+
+## 1.0.7
+
+- Simplified recipe and build-piece visibility evaluation while reducing repeated known-state and InfinityHammer compatibility checks.
+- Refined Admin Bypass probing with cached lookups, separate denied/transient retry intervals, and periodic revalidation.
+- Removed unused localization template code and colocated notification policy with its patches.
+- Hardened release packaging with opt-in live deployment, validated manifest updates, and refreshed documentation.
+
+## 1.0.6
+
+- Added AzuCraftyBoxes compatibility so unknown build-piece names and descriptions stay veiled after build HUD count updates.
+
+## 1.0.5
+
+- Added a client-side Admin Bypass option that only takes effect for verified host/server admins.
+- Fixed InfinityHammer command selections losing their placement ghost and failing with missing-info behavior.
+- Improved config reload debounce and simplified piece station requirement UI handling.
+
+## 1.0.4
+
+- Simplified internal recipe, piece, station, and override state into focused files.
+- Removed redundant custom version-handshake code in favor of ServerSync handling.
+- Removed nullable-disabled patch files and shared requirement UI masking helpers.
+
+## 1.0.3
+
+- Fixed InfinityHammer active tool selections staying veiled and unusable.
+- Limited the InfinityHammer known-piece override to tool selections so normal unknown pieces remain veiled after selection.
+
+## 1.0.2
+
+- Kept InfinityHammer admin menu tools unmasked by default.
+- Added type-based known-piece override API for compatibility mods.
+- Improved admin tool compatibility for ZoneSavior.
+
+## 1.0.1
+
+- Added a synced option to require crafting station knowledge before unknown build-piece previews appear.
+- Added compat APIs for masking checks and known-piece overrides.
+- Added Homestead support so blueprint/tool pseudo-pieces can stay unmasked.
+
+## 1.0.0
+
+- Initial Release

@@ -10,10 +10,11 @@ using ServerSync;
 namespace VeiledRecipes;
 
 [BepInPlugin(ModGUID, ModName, ModVersion)]
+[BepInDependency(VeiledRecipeAaaCraftingCompat.PluginGuid, BepInDependency.DependencyFlags.SoftDependency)]
 public class VeiledRecipesPlugin : BaseUnityPlugin
 {
     internal const string ModName = "VeiledRecipes";
-    internal const string ModVersion = "1.0.8";
+    internal const string ModVersion = "1.0.9";
     internal const string Author = "sighsorry";
     public const string ModGUID = $"{Author}.{ModName}";
     private static string ConfigFileName = $"{ModGUID}.cfg";
@@ -63,6 +64,7 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
 
         Assembly assembly = Assembly.GetExecutingAssembly();
         _harmony.PatchAll(assembly);
+        VeiledRecipeAaaCraftingCompat.Initialize();
         SetupWatcher();
 
         Config.Save();

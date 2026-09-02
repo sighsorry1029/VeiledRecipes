@@ -179,6 +179,17 @@ The requirement blacklist matches ingredient/resource prefabs used by the recipe
 SwordCheat, SledgeCheat
 ```
 
+## AAA Crafting Compatibility
+
+Built-in support for AzuAntiArthriticCrafting activates automatically when that mod is installed. No AAA DLL changes or additional configuration are required.
+
+- Unknown recipes stay masked in AAA's list and grid layouts, including names, icons, output counts, and hover tooltips.
+- Hover tooltips return to their normal content when the recipe is learned or admin bypass becomes active.
+- Unknown recipes cannot be added to AAA's recipe tracker. Already tracked recipes are temporarily hidden while recipe knowledge is required, without removing the tracked entries.
+- Known recipes and recipe-less upgrade/socket targets retain their existing behavior. Preview grouping applies within the currently displayed page and respects AAA's layout.
+
+This integration does not change AAA's search/filter rules and does not add built-in support for ZenUI's custom panels.
+
 ## Compatibility API
 
 VeiledRecipes patches Valheim's vanilla crafting and build-piece UI. Mods that draw their own recipe UI may need to call the public API and mask their own controls.
