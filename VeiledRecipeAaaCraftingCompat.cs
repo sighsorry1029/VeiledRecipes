@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using BepInEx.Bootstrap;
 using HarmonyLib;
 using TMPro;
@@ -49,6 +51,7 @@ internal static class VeiledRecipeAaaCraftingCompat
             Patch(harmony, tracker, "ToggleUI", Type.EmptyTypes, nameof(TrackerPostfix));
             _loaded = true;
             VeiledRecipesPlugin.PluginLogger.LogInfo("AAA Crafting compatibility enabled.");
+            InitializePagination(assembly);
         }
         catch (Exception ex)
         {
@@ -66,6 +69,89 @@ internal static class VeiledRecipeAaaCraftingCompat
             priority = Priority.Last
         };
         harmony.Patch(target, prefix: prefix ? patch : null, postfix: prefix ? null : patch);
+    }
+
+    private static void InitializePagination(Assembly assembly)
+    {
+        // Keep paging hooks independent: an unsupported AAA version must not disable masking.
+        Harmony harmony = new(VeiledRecipesPlugin.ModGUID + ".AAA.Paging");
+        try
+        {
+            Type paginator = assembly.GetType(Namespace + "Patches.PaginatorPatches+InventoryGuiUpdateRecipeListPatch", throwOnError: true)!;
+            Type[] parameters = { typeof(InventoryGui), typeof(List<Recipe>).MakeByRefType() };
+            MethodInfo prefix = AccessTools.DeclaredMethod(paginator, "Prefix", parameters) ?? throw new MissingMethodException(paginator.FullName, "Prefix");
+            MethodInfo postfix = AccessTools.DeclaredMethod(paginator, "Postfix", parameters) ?? throw new MissingMethodException(paginator.FullName, "Postfix");
+            HarmonyMethod transpiler = new(typeof(VeiledRecipeAaaCraftingCompat), nameof(GroupBeforePagination));
+            harmony.Patch(prefix, transpiler: transpiler);
+            harmony.Patch(postfix, transpiler: transpiler);
+            VeiledRecipesPlugin.PluginLogger.LogInfo("AAA Crafting grouping before pagination enabled.");
+        }
+        catch (Exception ex)
+        {
+            harmony.UnpatchSelf();
+            VeiledRecipesPlugin.PluginLogger.LogWarning($"AAA Crafting full-list grouping could not be enabled; keeping page-local grouping: {ex.Message}");
+        }
+    }
+
+    private static IEnumerable<CodeInstruction> GroupBeforePagination(IEnumerable<CodeInstruction> instructions, MethodBase __originalMethod)
+    {
+        bool craft = __originalMethod.Name == "Prefix";
+        Type entryType = craft ? typeof(Recipe) : typeof(InventoryGui.RecipeDataPair);
+        MethodInfo replacement = AccessTools.Method(typeof(VeiledRecipeAaaCraftingCompat), craft ? nameof(SkipCraftRecipes) : nameof(SkipRecipePairs));
+        List<CodeInstruction> codes = instructions.ToList();
+        int replacements = 0;
+        foreach (CodeInstruction code in codes)
+        {
+            if (code.opcode != OpCodes.Call || code.operand is not MethodInfo method ||
+                method.DeclaringType != typeof(Enumerable) || method.Name != nameof(Enumerable.Skip) ||
+                !method.IsGenericMethod || method.GetGenericArguments()[0] != entryType ||
+                method.GetParameters().Length != 2 || method.GetParameters()[1].ParameterType != typeof(int))
+            {
+                continue;
+            }
+
+            code.operand = replacement;
+            replacements++;
+        }
+
+        // Crafting has fresh-list and cache-reuse paths; upgrades have one pair-based path.
+        int expected = craft ? 2 : 1;
+        if (replacements != expected)
+        {
+            throw new InvalidOperationException($"Unsupported AAA {__originalMethod.Name} pagination: expected {expected} Skip calls, found {replacements}.");
+        }
+        return codes;
+    }
+
+    private static IEnumerable<Recipe> SkipCraftRecipes(IEnumerable<Recipe> recipes, int count)
+    {
+        return SkipGrouped(recipes, count, (player, recipe) => VeiledRecipeState.IsUnknownRecipePreview(player, recipe));
+    }
+
+    private static IEnumerable<InventoryGui.RecipeDataPair> SkipRecipePairs(IEnumerable<InventoryGui.RecipeDataPair> pairs, int count)
+    {
+        return SkipGrouped(pairs, count, (player, pair) =>
+            VeiledRecipeState.ShouldMaskRecipe(player, pair.Recipe, pair.ItemData) &&
+            VeiledRecipeState.IsUnknownRecipePreview(player, pair.Recipe));
+    }
+
+    private static IEnumerable<T> SkipGrouped<T>(IEnumerable<T> source, int count, Func<Player, T, bool> isUnknown)
+    {
+        Player? player = Player.m_localPlayer;
+        if (player == null || !VeiledRecipeState.GroupUnknownRecipePreviewsBelowKnownRecipes)
+        {
+            return source.Skip(count);
+        }
+
+        // Re-evaluate knowledge for every page, without changing AAA's cached sort/filter result.
+        List<T> known = new();
+        List<T> unknown = new();
+        foreach (T entry in source)
+        {
+            (isUnknown(player, entry) ? unknown : known).Add(entry);
+        }
+        known.AddRange(unknown);
+        return known.Skip(count);
     }
 
     internal static void MaskRecipeList(InventoryGui gui, Player player)

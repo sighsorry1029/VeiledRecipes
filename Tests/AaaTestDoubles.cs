@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using HarmonyLib;
 
 // Minimal managed UI doubles. Harmony itself is real; no Unity player is started.
 namespace UnityEngine
@@ -53,7 +55,16 @@ public class Localization
 }
 
 public class ItemDrop { public class ItemData { } }
-public class Recipe { public bool Masked; public bool RequiresKnowledge; }
+public class Recipe
+{
+    public bool Masked;
+    public bool RequiresKnowledge;
+    public bool NoLearnableRecipe;
+    public bool PreviewAllowed = true;
+    public bool Visible = true;
+    public bool CanCraft;
+    public int SortOrder;
+}
 public class MessageHud { public enum MessageType { Center } }
 public class Player
 {
@@ -74,6 +85,15 @@ public class InventoryGui
     public static InventoryGui? instance;
     public readonly List<RecipeDataPair> m_availableRecipes = new();
     public RecipeDataPair m_selectedRecipe;
+    public bool CraftTab = true;
+    public bool InCraftTab() => CraftTab;
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public void UpdateRecipeList(List<Recipe> recipes)
+    {
+        if (!InCraftTab()) return;
+        m_availableRecipes.Clear();
+        m_availableRecipes.AddRange(recipes.Select(r => new RecipeDataPair { Recipe = r }));
+    }
 }
 
 namespace BepInEx.Bootstrap
@@ -100,16 +120,61 @@ namespace VeiledRecipes
         public static string UnknownNameText = "???";
         public static string UnknownDescriptionText = "Not enough info";
         public static ItemDrop.ItemData? LastTarget;
+        public static bool GroupUnknownRecipePreviewsBelowKnownRecipes = true;
         public static bool ShouldMaskRecipe(Player player, Recipe recipe, ItemDrop.ItemData? item = null)
         {
             LastTarget = item;
-            return recipe.Masked && !player.Bypass;
+            return recipe.Masked && !player.Bypass && !(recipe.NoLearnableRecipe && item != null);
         }
+        public static bool IsUnknownRecipePreview(Player player, Recipe recipe) => recipe.Masked && recipe.PreviewAllowed && !player.Bypass;
         public static bool RequiresRecipeKnowledge(Player player, Recipe recipe) => recipe.RequiresKnowledge && !player.Bypass;
     }
     public static class InventoryGuiAddRecipeToListPatch
     {
         public static void MaskRecipeListElement(UnityEngine.GameObject element, Recipe recipe) => element.Masked = true;
+    }
+}
+
+namespace AzuAntiArthriticCrafting.Patches
+{
+    public static class PaginatorPatches
+    {
+        // Match AAA 2.1.6's two craft Skip sites and one upgrade Skip site.
+        [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.UpdateRecipeList))]
+        [HarmonyWrapSafe]
+        [HarmonyAfter("randyknapp.mods.auga")]
+        public static class InventoryGuiUpdateRecipeListPatch
+        {
+            public static List<Recipe> Cached = new();
+            public static bool Reuse;
+            public static int Page;
+            public static int PageSize = 2;
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            public static void Prefix(InventoryGui __instance, ref List<Recipe> recipes)
+            {
+                if (!__instance.InCraftTab()) return;
+                if (Reuse)
+                {
+                    recipes = Cached.Skip(Page * PageSize).Take(PageSize).ToList();
+                    return;
+                }
+                recipes = recipes.Where(r => r.Visible).OrderByDescending(r => r.CanCraft).ThenBy(r => r.SortOrder).ToList();
+                Cached = recipes.ToList();
+                recipes = recipes.Skip(Page * PageSize).Take(PageSize).ToList();
+            }
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            public static void Postfix(InventoryGui __instance, ref List<Recipe> recipes)
+            {
+                if (__instance.InCraftTab()) return;
+                var filtered = __instance.m_availableRecipes.Where(p => p.Recipe.Visible)
+                    .OrderByDescending(p => p.Recipe.CanCraft).ThenBy(p => p.Recipe.SortOrder).ToList();
+                var page = filtered.Skip(Page * PageSize).Take(PageSize).ToList();
+                __instance.m_availableRecipes.Clear();
+                __instance.m_availableRecipes.AddRange(page);
+            }
+        }
     }
 }
 

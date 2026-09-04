@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using AzuAntiArthriticCrafting.Handlers;
 using AzuAntiArthriticCrafting.RecipeTracking;
 using BepInEx.Bootstrap;
@@ -8,6 +11,7 @@ using Mono.Cecil;
 using TMPro;
 using UnityEngine;
 using VeiledRecipes;
+using Paginator = AzuAntiArthriticCrafting.Patches.PaginatorPatches.InventoryGuiUpdateRecipeListPatch;
 
 internal static class AaaCompatibilityTests
 {
@@ -24,6 +28,8 @@ internal static class AaaCompatibilityTests
         VeiledRecipesPlugin.PluginLogger.Warnings.Clear();
         Chainloader.PluginInfos.Clear();
         Chainloader.PluginInfos.Add(VeiledRecipeAaaCraftingCompat.PluginGuid, new PluginInfo { Instance = new RecipeHoverTooltip() });
+        // AAA's prefix/postfix are already attached before VeiledRecipes loads.
+        new Harmony(VeiledRecipeAaaCraftingCompat.PluginGuid).CreateClassProcessor(typeof(Paginator)).Patch();
         VeiledRecipeAaaCraftingCompat.Initialize();
         Check(VeiledRecipesPlugin.PluginLogger.Warnings.Count == 0, "Harmony patches install with injected fields");
         var tooltipPatches = Harmony.GetPatchInfo(typeof(RecipeHoverTooltip).GetMethod("UpdateTextElements"));
@@ -101,8 +107,113 @@ internal static class AaaCompatibilityTests
         tracker.ToggleUI();
         Check(!tracker.RecipeUIs[0].recipeStub.activeSelf, "Other UI visibility decisions are preserved");
 
+        VerifyPagination(gui, player);
         if (args.Length > 0) VerifyDllContract(args[0]);
         Console.WriteLine($"PASS: {_assertions} assertions. Managed UI doubles, not an in-game test.");
+    }
+
+    private static void VerifyPagination(InventoryGui gui, Player player)
+    {
+        var ready = new Recipe { CanCraft = true, SortOrder = 40 };
+        var known1 = new Recipe { SortOrder = 25 };
+        var known2 = new Recipe { SortOrder = 30 };
+        var known3 = new Recipe { SortOrder = 50 };
+        var unknown1 = new Recipe { Masked = true, SortOrder = 10 };
+        var unknown2 = new Recipe { Masked = true, SortOrder = 20 };
+        var excluded = new Recipe { Visible = false, SortOrder = 0 };
+        var source = new List<Recipe> { known3, unknown2, ready, excluded, known1, unknown1, known2 };
+        var originalOrder = new[] { ready, unknown1, unknown2, known1, known2, known3 };
+        Paginator.Reuse = false;
+        Paginator.Page = 0;
+        gui.UpdateRecipeList(source);
+        Check(PageIs(ready, known1), "Craft: first page fills with known recipes, not just locally sorted previews");
+        Check(Paginator.Cached.SequenceEqual(originalOrder), "Craft: AAA's filtered, sorted cache is not modified");
+        Check(source.Count == 7 && source[0] == known3, "Craft: original input is not modified");
+        Paginator.Reuse = true;
+        Paginator.Page = 1;
+        gui.UpdateRecipeList(source);
+        Check(PageIs(known2, known3), "Cached craft: remaining known recipes precede every preview");
+        Paginator.Page = 2;
+        gui.UpdateRecipeList(source);
+        Check(PageIs(unknown1, unknown2), "Cached craft: previews retain AAA order on the last page");
+        Paginator.Page = 3;
+        gui.UpdateRecipeList(source);
+        Check(PageIs(), "Craft: filtering and page bounds are preserved");
+
+        VeiledRecipeState.GroupUnknownRecipePreviewsBelowKnownRecipes = false;
+        Paginator.Page = 1;
+        gui.UpdateRecipeList(source);
+        Check(PageIs(unknown2, known1), "Grouping off: original AAA order restores even on the cached path");
+        VeiledRecipeState.GroupUnknownRecipePreviewsBelowKnownRecipes = true;
+        gui.UpdateRecipeList(source);
+        Check(PageIs(known2, known3), "Grouping on: cached pages regroup without rebuilding AAA's cache");
+        unknown1.Masked = false;
+        Paginator.Page = 0;
+        gui.UpdateRecipeList(source);
+        Check(PageIs(ready, unknown1), "Unlock: cached recipes are reclassified using current knowledge");
+        Paginator.Page = 2;
+        gui.UpdateRecipeList(source);
+        Check(PageIs(known3, unknown2), "Unlock: no recipe is lost or duplicated across groups");
+        player.Bypass = true;
+        Paginator.Page = 1;
+        gui.UpdateRecipeList(source);
+        Check(PageIs(unknown2, known1), "Admin bypass: cached pages use AAA order");
+        player.Bypass = false;
+        gui.UpdateRecipeList(source);
+        Check(PageIs(known1, known2), "Bypass disabled: cached pages regroup again");
+        Player.m_localPlayer = null;
+        gui.UpdateRecipeList(source);
+        Check(PageIs(unknown2, known1), "No local player: paging remains unchanged");
+        Player.m_localPlayer = player;
+        unknown2.PreviewAllowed = false;
+        gui.UpdateRecipeList(source);
+        Check(PageIs(unknown2, known1), "Non-preview entries keep the same grouping policy as the vanilla patch");
+        unknown2.PreviewAllowed = true;
+        Check(Paginator.Cached.SequenceEqual(originalOrder), "Knowledge/config/bypass changes leave AAA's cache intact");
+
+        var noRecipe = new Recipe { Masked = true, NoLearnableRecipe = true, SortOrder = 5 };
+        var owned = new ItemDrop.ItemData();
+        var unknownOwned = new ItemDrop.ItemData();
+        InventoryGui.RecipeDataPair[] pairs =
+        {
+            new() { Recipe = known1 },
+            new() { Recipe = noRecipe },
+            new() { Recipe = unknown2, ItemData = unknownOwned },
+            new() { Recipe = noRecipe, ItemData = owned },
+            new() { Recipe = excluded }
+        };
+        gui.CraftTab = false;
+        Paginator.Page = 0;
+        ShowPairs();
+        Check(PageIs(noRecipe, known1) && ReferenceEquals(gui.m_availableRecipes[0].ItemData, owned), "Upgrade: recipe-less owned target stays ahead of veiled pairs");
+        Paginator.Page = 1;
+        ShowPairs();
+        Check(PageIs(noRecipe, unknown2) && gui.m_availableRecipes[0].ItemData == null && ReferenceEquals(gui.m_availableRecipes[1].ItemData, unknownOwned), "Upgrade: target context and duplicate-recipe pair identity are preserved");
+        VeiledRecipeState.GroupUnknownRecipePreviewsBelowKnownRecipes = false;
+        Paginator.Page = 0;
+        ShowPairs();
+        Check(PageIs(noRecipe, noRecipe) && gui.m_availableRecipes[0].ItemData == null, "Upgrade grouping off: AAA pair order restores");
+        VeiledRecipeState.GroupUnknownRecipePreviewsBelowKnownRecipes = true;
+        gui.CraftTab = true;
+        Paginator.Reuse = false;
+        gui.UpdateRecipeList(new List<Recipe> { unknown2 });
+        Check(PageIs(unknown2), "Single all-unknown page is unchanged");
+        gui.UpdateRecipeList(new List<Recipe>());
+        Check(PageIs(), "Empty recipe list is safe");
+
+        MethodInfo transpiler = typeof(VeiledRecipeAaaCraftingCompat).GetMethod("GroupBeforePagination", BindingFlags.NonPublic | BindingFlags.Static)!;
+        bool rejected = false;
+        try { transpiler.Invoke(null, new object[] { new[] { new CodeInstruction(OpCodes.Ret) }, typeof(Paginator).GetMethod("Prefix")! }); }
+        catch (TargetInvocationException ex) { rejected = ex.InnerException is InvalidOperationException; }
+        Check(rejected, "Unsupported pagination IL is rejected instead of partially rewriting the method");
+
+        bool PageIs(params Recipe[] expected) => gui.m_availableRecipes.Select(p => p.Recipe).SequenceEqual(expected);
+        void ShowPairs()
+        {
+            gui.m_availableRecipes.Clear();
+            gui.m_availableRecipes.AddRange(pairs);
+            gui.UpdateRecipeList(new List<Recipe>());
+        }
     }
 
     private static void VerifyDllContract(string path)
@@ -122,6 +233,20 @@ internal static class AaaCompatibilityTests
         Check(tracker.Fields.Any(f => f.Name == "RecipeUIs" && !f.IsStatic && f.FieldType.FullName == "System.Collections.Generic.List`1<AzuAntiArthriticCrafting.RecipeTracking.RecipeUI>"), "DLL: tracked entries list");
         Check(entry.Properties.Any(p => p.Name == "Recipe" && p.PropertyType.FullName == "Recipe" && p.GetMethod.IsPublic), "DLL: tracked recipe getter");
         Check(entry.Fields.Any(f => f.Name == "recipeStub" && f.IsPublic && f.FieldType.FullName == "UnityEngine.GameObject"), "DLL: tracked panel field");
+        var paginator = types.Single(t => t.FullName == "AzuAntiArthriticCrafting.Patches.PaginatorPatches")
+            .NestedTypes.Single(t => t.Name == "InventoryGuiUpdateRecipeListPatch");
+        var prefix = paginator.Methods.Single(m => m.Name == "Prefix");
+        var postfix = paginator.Methods.Single(m => m.Name == "Postfix");
+        Check(new[] { prefix, postfix }.All(m => m.IsStatic && m.ReturnType.FullName == "System.Void" && m.Parameters.Count == 2 &&
+            m.Parameters[0].ParameterType.FullName == "InventoryGui" && m.Parameters[1].ParameterType.FullName == "System.Collections.Generic.List`1<Recipe>&"), "DLL: paginator patch signatures");
+        Check(SkipCount(prefix, "Recipe") == 2, "DLL: fresh and cached craft pagination hooks");
+        Check(SkipCount(postfix, "InventoryGui/RecipeDataPair") == 1, "DLL: upgrade pair pagination hook");
+
+        int SkipCount(MethodDefinition method, string typeName) => method.Body.Instructions.Count(i =>
+            i.OpCode == Mono.Cecil.Cil.OpCodes.Call && i.Operand is GenericInstanceMethod call &&
+            call.DeclaringType.FullName == "System.Linq.Enumerable" && call.Name == "Skip" &&
+            call.GenericArguments.Count == 1 && call.GenericArguments[0].FullName == typeName &&
+            call.Parameters.Count == 2 && call.Parameters[1].ParameterType.FullName == "System.Int32");
     }
 
     private static void Check(bool condition, string message)

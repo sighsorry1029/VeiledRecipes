@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0
+
+- Extended AAA Crafting preview grouping across the entire filtered recipe list before pagination, in both craft and upgrade tabs.
+- Preserved AAA's original order within each group and restored its normal ordering when the existing grouping option is disabled.
+- Re-evaluated recipe knowledge on cached page changes without modifying AAA's cache, while preserving recipe-less upgrade target handling.
+- Added pagination compatibility checks and regression tests. Unsupported AAA pagination changes fall back to page-local grouping without disabling masking.
+
 ## 1.0.9
 
 - Added automatic AAA Crafting compatibility for veiled recipe names, icons, output counts, and hover tooltips in list and grid layouts.

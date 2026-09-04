@@ -186,7 +186,8 @@ Built-in support for AzuAntiArthriticCrafting activates automatically when that 
 - Unknown recipes stay masked in AAA's list and grid layouts, including names, icons, output counts, and hover tooltips.
 - Hover tooltips return to their normal content when the recipe is learned or admin bypass becomes active.
 - Unknown recipes cannot be added to AAA's recipe tracker. Already tracked recipes are temporarily hidden while recipe knowledge is required, without removing the tracked entries.
-- Known recipes and recipe-less upgrade/socket targets retain their existing behavior. Preview grouping applies within the currently displayed page and respects AAA's layout.
+- Known recipes and recipe-less upgrade/socket targets retain their existing behavior. With `Group Unknown Recipe Previews Below Known Recipes` enabled, previews are grouped after known recipes across the entire filtered list before AAA splits it into pages, in both craft and upgrade views. AAA's original order is preserved within each group.
+- Grouping uses current recipe knowledge whenever a page is generated, including cached page changes. Disabling the option restores AAA's original order without changing its cache or filtering rules. Unsupported AAA pagination changes fall back to page-local grouping with a log warning.
 
 This integration does not change AAA's search/filter rules and does not add built-in support for ZenUI's custom panels.
 
