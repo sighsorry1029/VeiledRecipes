@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -116,25 +115,6 @@ internal static class VeiledRecipeRequirementUi
         {
             tooltip.m_text = knownStation ? piece.m_craftingStation.m_name : VeiledRecipeState.UnknownNameText;
         }
-    }
-
-    internal static List<Piece.Requirement> GetVisibleRequirements(Piece.Requirement[]? source, int quality)
-    {
-        List<Piece.Requirement> requirements = new();
-        if (source == null)
-        {
-            return requirements;
-        }
-
-        foreach (Piece.Requirement requirement in source)
-        {
-            if (requirement?.m_resItem != null && requirement.GetAmount(quality) > 0)
-            {
-                requirements.Add(requirement);
-            }
-        }
-
-        return requirements;
     }
 
     internal static int GetCyclingStart(int requirementCount, int slotCount)

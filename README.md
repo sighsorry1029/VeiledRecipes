@@ -255,3 +255,11 @@ dotnet build .\VeiledRecipes.csproj -c Debug -p:DeployToGame=true
 ```
 
 Release builds still create the Thunderstore and Nexus zip packages normally.
+
+The solution also builds the compatibility test runner. Run its managed regression checks explicitly:
+
+```powershell
+dotnet build Tests/AaaCompatibility.Tests.csproj -c Release -t:Check
+```
+
+See [Tests/README.md](Tests/README.md) for optional AAA DLL contract checks and the separate in-game verification checklist.

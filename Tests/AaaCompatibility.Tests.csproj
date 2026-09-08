@@ -14,5 +14,12 @@
       <HintPath>$(BepInExPath)\core\Mono.Cecil.dll</HintPath>
     </Reference>
     <Compile Include="..\VeiledRecipeAaaCraftingCompat.cs" Link="VeiledRecipeAaaCraftingCompat.cs" />
+    <Compile Include="..\VeiledRecipeVisibilityState.cs" Link="VeiledRecipeVisibilityState.cs" />
   </ItemGroup>
+  <Target Name="Check" DependsOnTargets="Build">
+    <Error Condition="'$(OS)' != 'Windows_NT'" Text="The net48 compatibility runner requires Windows. Build alone does not run these checks." />
+    <Error Condition="'$(AaaDllPath)' != '' And !Exists('$(AaaDllPath)')" Text="AAA DLL not found: $(AaaDllPath)" />
+    <Exec Command="&quot;$(TargetPath)&quot;" Condition="'$(AaaDllPath)' == ''" />
+    <Exec Command="&quot;$(TargetPath)&quot; &quot;$(AaaDllPath)&quot;" Condition="'$(AaaDllPath)' != ''" />
+  </Target>
 </Project>

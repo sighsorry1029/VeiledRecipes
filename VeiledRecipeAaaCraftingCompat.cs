@@ -131,8 +131,7 @@ internal static class VeiledRecipeAaaCraftingCompat
     private static IEnumerable<InventoryGui.RecipeDataPair> SkipRecipePairs(IEnumerable<InventoryGui.RecipeDataPair> pairs, int count)
     {
         return SkipGrouped(pairs, count, (player, pair) =>
-            VeiledRecipeState.ShouldMaskRecipe(player, pair.Recipe, pair.ItemData) &&
-            VeiledRecipeState.IsUnknownRecipePreview(player, pair.Recipe));
+            VeiledRecipeState.GetRecipeVisibilityState(player, pair.Recipe, pair.ItemData) == VeiledRecipeVisibilityState.UnknownPreview);
     }
 
     private static IEnumerable<T> SkipGrouped<T>(IEnumerable<T> source, int count, Func<Player, T, bool> isUnknown)

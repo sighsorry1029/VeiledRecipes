@@ -2,14 +2,14 @@ namespace VeiledRecipes;
 
 internal static partial class VeiledRecipeState
 {
-    internal static VeiledRecipeVisibilityState GetRecipeVisibilityState(Player player, Recipe recipe)
+    internal static VeiledRecipeVisibilityState GetRecipeVisibilityState(Player player, Recipe recipe, ItemDrop.ItemData? targetItem = null)
     {
         if (player == null || recipe == null || recipe.m_item == null)
         {
             return VeiledRecipeVisibilityState.Hidden;
         }
 
-        if (!ShouldMaskRecipe(player, recipe))
+        if (!ShouldMaskRecipe(player, recipe, targetItem))
         {
             return VeiledRecipeVisibilityState.Known;
         }

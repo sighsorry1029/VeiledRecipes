@@ -144,7 +144,7 @@ internal static class HudUpdatePieceListPatch
         for (int i = 0; i < __instance.m_pieceIcons.Count && i < pieces.Count; i++)
         {
             Piece piece = pieces[i];
-            if (VeiledRecipeState.GetPieceVisibilityState(player, piece) == VeiledRecipeVisibilityState.Known)
+            if (piece == null || !VeiledRecipeState.ShouldMaskPiece(player, piece))
             {
                 continue;
             }
@@ -175,7 +175,7 @@ internal static class HudSetupPieceInfoPatch
             return false;
         }
 
-        if (VeiledRecipeState.GetPieceVisibilityState(player, piece) == VeiledRecipeVisibilityState.Known)
+        if (!VeiledRecipeState.ShouldMaskPiece(player, piece))
         {
             hud.m_buildIcon.color = Color.white;
             return false;

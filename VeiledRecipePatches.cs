@@ -161,8 +161,7 @@ internal static class InventoryGuiUpdateRecipeListPatch
 
         foreach (InventoryGui.RecipeDataPair pair in __instance.m_availableRecipes)
         {
-            if (VeiledRecipeState.ShouldMaskRecipe(player, pair.Recipe, pair.ItemData) &&
-                VeiledRecipeState.IsUnknownRecipePreview(player, pair.Recipe))
+            if (VeiledRecipeState.GetRecipeVisibilityState(player, pair.Recipe, pair.ItemData) == VeiledRecipeVisibilityState.UnknownPreview)
             {
                 unknownPreviews.Add(pair);
             }
@@ -276,14 +275,39 @@ internal static class InventoryGuiUpdateRecipePatch
     private static void SetupRecipeRequirements(InventoryGui gui, Player player, Recipe recipe, int quality, bool allowedQuality, int craftMultiplier)
     {
         int slot = 0;
-        List<Piece.Requirement> requirements = VeiledRecipeRequirementUi.GetVisibleRequirements(recipe.m_resources, quality);
-        int start = VeiledRecipeRequirementUi.GetCyclingStart(requirements.Count, gui.m_recipeRequirementList.Length);
-
-        if (allowedQuality)
+        Piece.Requirement[]? requirements = recipe.m_resources;
+        if (allowedQuality && requirements != null && gui.m_recipeRequirementList.Length > 0)
         {
-            for (int i = start; i < requirements.Count && slot < gui.m_recipeRequirementList.Length; i++)
+            // Count first so cycling still uses the number of visible requirements, without a temporary list.
+            int requirementCount = 0;
+            foreach (Piece.Requirement requirement in requirements)
             {
-                VeiledRecipeRequirementUi.SetupRequirement(gui.m_recipeRequirementList[slot].transform, requirements[i], player, craft: true, quality, craftMultiplier);
+                if (requirement?.m_resItem != null && requirement.GetAmount(quality) > 0)
+                {
+                    requirementCount++;
+                }
+            }
+
+            int start = VeiledRecipeRequirementUi.GetCyclingStart(requirementCount, gui.m_recipeRequirementList.Length);
+            foreach (Piece.Requirement requirement in requirements)
+            {
+                if (slot >= gui.m_recipeRequirementList.Length)
+                {
+                    break;
+                }
+
+                if (requirement?.m_resItem == null || requirement.GetAmount(quality) <= 0)
+                {
+                    continue;
+                }
+
+                if (start > 0)
+                {
+                    start--;
+                    continue;
+                }
+
+                VeiledRecipeRequirementUi.SetupRequirement(gui.m_recipeRequirementList[slot].transform, requirement, player, craft: true, quality, craftMultiplier);
                 slot++;
             }
         }

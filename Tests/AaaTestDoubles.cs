@@ -127,6 +127,11 @@ namespace VeiledRecipes
             return recipe.Masked && !player.Bypass && !(recipe.NoLearnableRecipe && item != null);
         }
         public static bool IsUnknownRecipePreview(Player player, Recipe recipe) => recipe.Masked && recipe.PreviewAllowed && !player.Bypass;
+        public static VeiledRecipeVisibilityState GetRecipeVisibilityState(Player player, Recipe recipe, ItemDrop.ItemData? targetItem = null)
+        {
+            if (!ShouldMaskRecipe(player, recipe, targetItem)) return VeiledRecipeVisibilityState.Known;
+            return recipe.PreviewAllowed ? VeiledRecipeVisibilityState.UnknownPreview : VeiledRecipeVisibilityState.Hidden;
+        }
         public static bool RequiresRecipeKnowledge(Player player, Recipe recipe) => recipe.RequiresKnowledge && !player.Bypass;
     }
     public static class InventoryGuiAddRecipeToListPatch

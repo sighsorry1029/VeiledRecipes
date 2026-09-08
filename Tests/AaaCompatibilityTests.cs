@@ -16,6 +16,7 @@ using Paginator = AzuAntiArthriticCrafting.Patches.PaginatorPatches.InventoryGui
 internal static class AaaCompatibilityTests
 {
     private static int _assertions;
+    private static bool _sawInstalledPagingPrefix;
 
     private static void Main(string[] args)
     {
@@ -30,6 +31,7 @@ internal static class AaaCompatibilityTests
         Chainloader.PluginInfos.Add(VeiledRecipeAaaCraftingCompat.PluginGuid, new PluginInfo { Instance = new RecipeHoverTooltip() });
         // AAA's prefix/postfix are already attached before VeiledRecipes loads.
         new Harmony(VeiledRecipeAaaCraftingCompat.PluginGuid).CreateClassProcessor(typeof(Paginator)).Patch();
+        VerifyPaginationRollback();
         VeiledRecipeAaaCraftingCompat.Initialize();
         Check(VeiledRecipesPlugin.PluginLogger.Warnings.Count == 0, "Harmony patches install with injected fields");
         var tooltipPatches = Harmony.GetPatchInfo(typeof(RecipeHoverTooltip).GetMethod("UpdateTextElements"));
@@ -111,6 +113,77 @@ internal static class AaaCompatibilityTests
         if (args.Length > 0) VerifyDllContract(args[0]);
         Console.WriteLine($"PASS: {_assertions} assertions. Managed UI doubles, not an in-game test.");
     }
+
+    private static void VerifyPaginationRollback()
+    {
+        const string pagingOwner = VeiledRecipesPlugin.ModGUID + ".AAA.Paging";
+        MethodInfo prefix = typeof(Paginator).GetMethod("Prefix")!;
+        MethodInfo postfix = typeof(Paginator).GetMethod("Postfix")!;
+        Harmony fixture = new("VeiledRecipes.Tests.UnsupportedPagination");
+        fixture.Patch(postfix, transpiler: new HarmonyMethod(typeof(AaaCompatibilityTests), nameof(UnsupportedUpgradePagination)) { priority = Priority.First });
+        try
+        {
+            VeiledRecipeAaaCraftingCompat.Initialize();
+            Check(_sawInstalledPagingPrefix, "Paging failure occurs after the craft prefix was successfully installed");
+            Check(VeiledRecipesPlugin.PluginLogger.Warnings.Count == 1 &&
+                  VeiledRecipesPlugin.PluginLogger.Warnings[0].Contains("full-list grouping could not be enabled"),
+                "Unsupported upgrade pagination warns and returns from initialization");
+            Check(Harmony.GetPatchInfo(prefix)?.Owners.Contains(pagingOwner) != true &&
+                  Harmony.GetPatchInfo(postfix)?.Owners.Contains(pagingOwner) != true,
+                "Paging rollback removes both paging hooks");
+            Check(Harmony.GetPatchInfo(postfix)?.Owners.Contains(fixture.Id) == true &&
+                  Harmony.GetPatchInfo(typeof(InventoryGui).GetMethod("UpdateRecipeList"))?.Owners.Contains(VeiledRecipeAaaCraftingCompat.PluginGuid) == true,
+                "Paging rollback preserves patches owned by other mods");
+            Check(Harmony.GetPatchInfo(typeof(RecipeHoverTooltip).GetMethod("UpdateTextElements"))?.Owners.Contains(VeiledRecipesPlugin.ModGUID + ".AAA") == true,
+                "Paging rollback preserves the separate masking owner");
+
+            Player.m_localPlayer = new Player();
+            var gui = InventoryGui.instance = new InventoryGui();
+            var element = new GameObject();
+            var tooltip = element.Add(new RecipeHoverTooltip());
+            gui.m_availableRecipes.Add(new InventoryGui.RecipeDataPair { Recipe = new Recipe { Masked = true }, InterfaceElement = element });
+            var root = RecipeHoverTooltip.m_tooltip = new GameObject();
+            var topic = new GameObject().Add(new TMP_Text());
+            var text = new GameObject().Add(new TMP_Text());
+            root.transform.Children.Add("Topic", topic.transform);
+            root.transform.Children.Add("Text", text.transform);
+            tooltip.UpdateTextElements();
+            Check(topic.text == VeiledRecipeState.UnknownNameText && text.text == VeiledRecipeState.UnknownDescriptionText,
+                "Tooltip masking still executes after paging installation fails");
+        }
+        finally
+        {
+            fixture.UnpatchSelf();
+        }
+
+        // Restore the supported fixture so every existing paging scenario runs normally.
+        VeiledRecipesPlugin.PluginLogger.Warnings.Clear();
+        typeof(VeiledRecipeAaaCraftingCompat).GetMethod("InitializePagination", BindingFlags.NonPublic | BindingFlags.Static)!
+            .Invoke(null, new object[] { typeof(Paginator).Assembly });
+        Check(Harmony.GetPatchInfo(prefix)?.Owners.Contains(pagingOwner) == true &&
+              Harmony.GetPatchInfo(postfix)?.Owners.Contains(pagingOwner) == true,
+            "Supported pagination can be installed after rollback");
+    }
+
+    private static IEnumerable<CodeInstruction> UnsupportedUpgradePagination(IEnumerable<CodeInstruction> instructions)
+    {
+        _sawInstalledPagingPrefix |= Harmony.GetPatchInfo(typeof(Paginator).GetMethod("Prefix"))?.Owners
+            .Contains(VeiledRecipesPlugin.ModGUID + ".AAA.Paging") == true;
+        // Keep the fixture's behavior but make its IL incompatible with the production hook.
+        MethodInfo replacement = typeof(AaaCompatibilityTests).GetMethod(nameof(SkipUnsupportedPairs), BindingFlags.NonPublic | BindingFlags.Static)!;
+        foreach (CodeInstruction code in instructions)
+        {
+            if (code.opcode == OpCodes.Call && code.operand is MethodInfo method &&
+                method.DeclaringType == typeof(Enumerable) && method.Name == nameof(Enumerable.Skip) &&
+                method.IsGenericMethod && method.GetGenericArguments()[0] == typeof(InventoryGui.RecipeDataPair))
+            {
+                code.operand = replacement;
+            }
+            yield return code;
+        }
+    }
+
+    private static IEnumerable<InventoryGui.RecipeDataPair> SkipUnsupportedPairs(IEnumerable<InventoryGui.RecipeDataPair> pairs, int count) => pairs.Skip(count);
 
     private static void VerifyPagination(InventoryGui gui, Player player)
     {

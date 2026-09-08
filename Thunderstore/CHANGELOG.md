@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.1
+
+- Reduced redundant preview checks in the build HUD and recipe grouping, preserving recipe-less upgrade/socket targets and existing masking rules.
+- Removed the temporary requirement list allocated while updating masked crafting details, preserving quality, multicraft amounts, and cycling pages.
+- Ensured configuration saving behavior is restored after initialization or reload failures, and the configuration watcher is disposed even when saving during shutdown fails.
+- Simplified configuration registration while preserving existing keys, defaults, synchronization settings, and public compatibility APIs.
+- Added regression checks for partial AAA pagination patch failures, rollback, and continued tooltip masking. Included the test runner in the solution with an explicit Check target and expanded the in-game verification checklist.
+
 ## 1.1.0
 
 - Extended AAA Crafting preview grouping across the entire filtered recipe list before pagination, in both craft and upgrade tabs.
