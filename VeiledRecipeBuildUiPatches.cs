@@ -36,7 +36,7 @@ internal static class BuildUiPieceRequirementsPatch
         VeiledBuildPieceIconGuard? guard = button.GetComponent<VeiledBuildPieceIconGuard>();
         if (guard == null) guard = button.gameObject.AddComponent<VeiledBuildPieceIconGuard>();
         guard.Configure(icon, masked);
-        upgradeArrow.gameObject.SetActive(!masked && piece != null && piece.m_isUpgrade);
+        if (masked) upgradeArrow.gameObject.SetActive(false);
     }
 }
 
