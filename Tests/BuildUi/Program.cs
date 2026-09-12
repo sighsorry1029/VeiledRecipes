@@ -19,7 +19,6 @@ internal static class Program
         var table = new PieceTable(); table.Pieces.Add(piece);
         var ui = new BuildUi(table);
         ui.Button.Setup(piece, ui);
-        Check(ui.Button.Icon.color == UnityEngine.Color.black, "new menu icon is masked");
         UnityEngine.UI.Image veil = ui.Button.Guard.Veil!;
         Check(!ui.Button.Icon.enabled && veil.gameObject.activeSelf && veil.color == UnityEngine.Color.black, "masked button renders only the black silhouette overlay");
         Check(veil.raycastTarget == ui.Button.Icon.raycastTarget, "silhouette preserves the original hover and click raycast area");
@@ -36,13 +35,13 @@ internal static class Program
         Check(ui.Button.LocalizedSearchTerms.SequenceEqual(new[] { "knownchair" }), "pool reuse clears previous masked search terms");
         player.HasRequirements = true;
         ui.Button.Setup(piece, ui);
-        Check(ui.Button.Icon.color == UnityEngine.Color.black && !ui.Button.LocalizedSearchTerms.Contains("knownchair"), "pool reuse back to unknown remasks without old terms");
+        Check(!ui.Button.Icon.enabled && ui.Button.Guard.Veil!.gameObject.activeSelf && !ui.Button.LocalizedSearchTerms.Contains("knownchair"), "pool reuse back to unknown remasks without old terms");
         var tags = new ByMaterialPieceList(wood, secret);
         Check(tags.GetTagDisplayName(0) == "Wood" && tags.GetTagDisplayName(1) == "?", "material tags respect knowledge");
 
         Tick(ui);
         ui.Button.RunImageColorUpdate();
-        Check(ui.Button.Guard.Veil!.gameObject.activeSelf && ui.Button.Guard.Veil.color == UnityEngine.Color.black, "final list pass preserves the silhouette across native frame updates");
+        Check(ui.Button.Guard.Veil!.gameObject.activeSelf && ui.Button.Guard.Veil.color == UnityEngine.Color.black, "silhouette remains after native frame updates");
         int refreshes = ui.Refreshes;
         for (int i = 0; i < 12; i++) Tick(ui);
         Check(ui.Refreshes == refreshes, "stable UI does not rebuild");
@@ -57,7 +56,7 @@ internal static class Program
 
         player.Recipes.Remove(piece.m_name); player.Recipes.Add("Other recipe");
         Tick(ui);
-        Check(ui.Button.Icon.color == UnityEngine.Color.black, "same-size knowledge replacement is detected");
+        Check(!ui.Button.Icon.enabled && ui.Button.Guard.Veil!.gameObject.activeSelf, "same-size knowledge replacement is detected");
         player.Materials.Add("Secret Material"); Tick(ui);
         Check(ui.Button.LocalizedSearchTerms.Contains("secretmaterial"), "learning a material refreshes masked search");
         Check(tags.GetTagDisplayName(1) == "Secret Material", "learning a material restores its tag");
@@ -65,7 +64,7 @@ internal static class Program
         player.Bypass = true; Tick(ui);
         Check(ui.Button.Icon.color == UnityEngine.Color.white, "admin bypass restores open menu");
         player.Bypass = false; Tick(ui);
-        Check(ui.Button.Icon.color == UnityEngine.Color.black, "revoking bypass remasks open menu");
+        Check(!ui.Button.Icon.enabled && ui.Button.Guard.Veil!.gameObject.activeSelf, "revoking bypass remasks open menu");
         VeiledRecipeState.UnknownNameText = "Hidden";
         VeiledRecipeBuildUiRefreshPatch.Invalidate(); Tick(ui);
         Check(ui.Button.LocalizedSearchTerms.Contains("hidden"), "display configuration refreshes search");

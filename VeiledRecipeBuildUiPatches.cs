@@ -28,12 +28,6 @@ internal static class BuildUiPieceRequirementsPatch
         ApplyAppearance(__instance, Player.m_localPlayer, ___m_icon, ___m_upgradeArrow);
     }
 
-    internal static void ApplyFinalAppearance(BuildUiPieceButton? button, Player? player)
-    {
-        if (button == null) return;
-        ApplyAppearance(button, player, Icon(button), UpgradeArrow(button));
-    }
-
     private static void ApplyAppearance(BuildUiPieceButton button, Player? player, Image icon, Image upgradeArrow)
     {
         Piece piece = button.Piece;
@@ -42,16 +36,8 @@ internal static class BuildUiPieceRequirementsPatch
         VeiledBuildPieceIconGuard? guard = button.GetComponent<VeiledBuildPieceIconGuard>();
         if (guard == null) guard = button.gameObject.AddComponent<VeiledBuildPieceIconGuard>();
         guard.Configure(icon, masked);
-        if (!masked || piece == null) return;
-
-        icon.color = Color.black;
-        upgradeArrow.gameObject.SetActive(false);
+        upgradeArrow.gameObject.SetActive(!masked && piece != null && piece.m_isUpgrade);
     }
-
-    private static readonly AccessTools.FieldRef<BuildUiPieceButton, Image> Icon =
-        AccessTools.FieldRefAccess<BuildUiPieceButton, Image>("m_icon");
-    private static readonly AccessTools.FieldRef<BuildUiPieceButton, Image> UpgradeArrow =
-        AccessTools.FieldRefAccess<BuildUiPieceButton, Image>("m_upgradeArrow");
 }
 
 // The 1.0 build-button prefab can overwrite its original icon tint. Render a
@@ -230,20 +216,4 @@ internal static class BuildUiSpecialPieceCleanupPatch
 {
     // Vanilla destroys/recreates the repair/remove button instead of pooling it.
     private static void Prefix(BuildUiPieceButton ___m_specialPieceButton) => BuildUiDestroyPatch.Unsubscribe(___m_specialPieceButton);
-
-    // Setup normally applies the mask through UpdateRequirements. Re-apply it
-    // after the complete list update because button/navigation or compatibility
-    // code can update an icon later in the same rebuild.
-    [HarmonyPriority(Priority.Last)]
-    private static void Postfix(List<BuildUiPieceButton> ___m_pieceButtons, BuildUiPieceButton ___m_specialPieceButton)
-    {
-        Player player = Player.m_localPlayer;
-        if (player == null) return;
-
-        foreach (BuildUiPieceButton button in ___m_pieceButtons)
-        {
-            BuildUiPieceRequirementsPatch.ApplyFinalAppearance(button, player);
-        }
-        BuildUiPieceRequirementsPatch.ApplyFinalAppearance(___m_specialPieceButton, player);
-    }
 }
