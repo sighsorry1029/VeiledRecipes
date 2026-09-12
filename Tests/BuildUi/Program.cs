@@ -30,7 +30,12 @@ internal static class Program
         ui.Button.Setup(piece, ui);
         Check(Localization.OnLanguageChange!.GetInvocationList().Length == 1, "pooled Setup does not duplicate language subscriptions");
         var other = new Piece { m_name = "Known Chair" };
-        player.Recipes.Add(other.m_name); player.HasRequirements = false; ui.Button.Setup(other, ui);
+        player.Recipes.Add(other.m_name);
+        var freshKnownButton = new BuildUiPieceButton();
+        freshKnownButton.Setup(other, ui);
+        Check(freshKnownButton.GetComponent<VeiledBuildPieceIconGuard>() == null, "known button does not allocate an unused silhouette layer");
+        Localization.OnLanguageChange -= freshKnownButton.RefreshSearchTerm;
+        player.HasRequirements = false; ui.Button.Setup(other, ui);
         Check(ui.Button.Icon.enabled && !ui.Button.Guard.Veil!.gameObject.activeSelf && ui.Button.Icon.color == UnityEngine.Color.grey && !ui.Button.Upgrade.gameObject.activeSelf, "known piece without materials restores the original grey icon");
         Check(ui.Button.LocalizedSearchTerms.SequenceEqual(new[] { "knownchair" }), "pool reuse clears previous masked search terms");
         player.HasRequirements = true;
@@ -45,7 +50,7 @@ internal static class Program
         int refreshes = ui.Refreshes;
         for (int i = 0; i < 12; i++) Tick(ui);
         Check(ui.Refreshes == refreshes, "stable UI does not rebuild");
-        Check(Localization.OnLanguageChange.GetInvocationList().Length == 1, "stable UI does not add subscriptions");
+        Check(Localization.OnLanguageChange!.GetInvocationList().Length == 1, "stable UI does not add subscriptions");
 
         player.Recipes.Add(piece.m_name);
         Tick(ui);

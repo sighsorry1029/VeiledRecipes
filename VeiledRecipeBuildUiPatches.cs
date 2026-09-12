@@ -34,9 +34,15 @@ internal static class BuildUiPieceRequirementsPatch
         bool masked = player != null && piece != null && VeiledRecipeState.ShouldMaskPiece(player, piece);
 
         VeiledBuildPieceIconGuard? guard = button.GetComponent<VeiledBuildPieceIconGuard>();
+        if (!masked)
+        {
+            guard?.Configure(icon, false);
+            return;
+        }
+
         if (guard == null) guard = button.gameObject.AddComponent<VeiledBuildPieceIconGuard>();
-        guard.Configure(icon, masked);
-        if (masked) upgradeArrow.gameObject.SetActive(false);
+        guard.Configure(icon, true);
+        upgradeArrow.gameObject.SetActive(false);
     }
 }
 
