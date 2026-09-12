@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\environment.props" />
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="0Harmony" HintPath="$(BepInExPath)\core\0Harmony.dll" />
+    <Compile Include="..\..\VeiledRecipeBuildUiPatches.cs" Link="VeiledRecipeBuildUiPatches.cs" />
+  </ItemGroup>
+  <Target Name="Check" DependsOnTargets="Build">
+    <Exec Command="&quot;$(TargetPath)&quot;" />
+  </Target>
+</Project>

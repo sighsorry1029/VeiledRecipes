@@ -14,7 +14,7 @@ namespace VeiledRecipes;
 public class VeiledRecipesPlugin : BaseUnityPlugin
 {
     internal const string ModName = "VeiledRecipes";
-    internal const string ModVersion = "1.1.1";
+    internal const string ModVersion = "1.1.4";
     internal const string Author = "sighsorry";
     public const string ModGUID = $"{Author}.{ModName}";
     private static string ConfigFileName = $"{ModGUID}.cfg";
@@ -67,6 +67,7 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
             Assembly assembly = Assembly.GetExecutingAssembly();
             _harmony.PatchAll(assembly);
             VeiledRecipeAaaCraftingCompat.Initialize();
+            Config.SettingChanged += OnSettingChanged;
             SetupWatcher();
 
             Config.Save();
@@ -85,6 +86,7 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
 
     private void OnDestroy()
     {
+        Config.SettingChanged -= OnSettingChanged;
         try
         {
             SaveWithRespectToConfigSet();
@@ -93,6 +95,11 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
         {
             _watcher?.Dispose();
         }
+    }
+
+    private static void OnSettingChanged(object sender, SettingChangedEventArgs args)
+    {
+        VeiledRecipeBuildUiRefreshPatch.Invalidate();
     }
 
     private void SetupWatcher()

@@ -1,0 +1,25 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Keep the existing public RecipeDataPair contract. Only build intermediates
+       are publicized; inspection and runtime use the original game assemblies. -->
+  <PropertyGroup>
+    <_PublicizerRuntime Condition="'$(MSBuildRuntimeType)' == 'Core'">netstandard2.1</_PublicizerRuntime>
+    <_PublicizerRuntime Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_PublicizerRuntime>
+  </PropertyGroup>
+  <UsingTask TaskName="PublicizeTask" AssemblyFile="$(PkgBepInEx_AssemblyPublicizer_MSBuild)\lib\$(_PublicizerRuntime)\BepInEx.AssemblyPublicizer.MSBuild.dll" />
+  <Target Name="PublicizeGameReference" AfterTargets="ResolveReferences" BeforeTargets="FindReferenceAssembliesForReferences">
+    <PropertyGroup>
+      <GeneratedIgnoresAccessChecksToFile>$(IntermediateOutputPath)VeiledRecipes.IgnoresAccessChecksTo.cs</GeneratedIgnoresAccessChecksToFile>
+    </PropertyGroup>
+    <PublicizeTask IntermediateOutputPath="$(IntermediateOutputPath)" GeneratedIgnoresAccessChecksToFile="$(GeneratedIgnoresAccessChecksToFile)" ReferencePath="@(ReferencePath)" PackageReference="@(PackageReference)" Publicize="@(Publicize)">
+      <Output TaskParameter="RemovedReferences" ItemName="_RemovedGameReferences" />
+      <Output TaskParameter="PublicizedReferences" ItemName="_PublicizedGameReferences" />
+    </PublicizeTask>
+    <ItemGroup>
+      <ReferencePath Remove="@(_RemovedGameReferences)" />
+      <ReferencePath Include="@(_PublicizedGameReferences)" />
+      <Compile Include="$(GeneratedIgnoresAccessChecksToFile)" />
+      <Compile Include="$(PkgBepInEx_AssemblyPublicizer_MSBuild)\contentFiles\cs\any\IgnoresAccessChecksToAttribute.cs" />
+      <FileWrites Include="$(GeneratedIgnoresAccessChecksToFile)" />
+    </ItemGroup>
+  </Target>
+</Project>

@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.1.4
+
+- Removed the light anti-aliased edge around veiled Hammer-tab piece icons by rendering only the black silhouette while veiled. Hover and click behavior remains intact, and known pieces without enough materials remain grey.
+
+## 1.1.3
+
+- Fixed unknown piece icons appearing as insufficient-material grey in the Valheim 1.0.7 Hammer piece panel by adding the same black silhouette used in the description panel. Known pieces without enough materials remain grey.
+
+## 1.1.2
+
+- Updated the mod for Valheim 1.0.7 client and dedicated-server assemblies while preserving configuration keys, saved station knowledge, public compatibility APIs, and optional mod boundaries.
+- Updated the vendored ServerSync integration for Valheim 1.0.7, including current administrator checks and pre-login buffering for the expanded login message set.
+- Added support for the new build UI and PieceTable availability structures, including masked icons, upgrade indicators, material tags, search terms, pooled button reuse, and runtime knowledge refreshes.
+- Added enhanced-upgrader resource, quality, and station-level handling to recipe discovery and requirement previews without changing the game's crafting, consumption, ownership, or authority paths.
+- Added managed build-UI regression checks and original client/server Mono compatibility checks for Harmony targets, runtime private access, recipe requirements, station knowledge, and build-piece categories.
+
 ## 1.1.1
 
 - Reduced redundant preview checks in the build HUD and recipe grouping, preserving recipe-less upgrade/socket targets and existing masking rules.

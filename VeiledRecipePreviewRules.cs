@@ -122,7 +122,7 @@ internal static partial class VeiledRecipeState
         bool foundKnownOnlyOneIngredient = false;
         foreach (Piece.Requirement requirement in recipe.m_resources)
         {
-            if (requirement.m_resItem == null || requirement.m_amount <= 0)
+            if (requirement?.m_resItem == null || requirement.m_amount <= 0 || !IsRecipeRequirementActive(player, requirement))
             {
                 continue;
             }
@@ -139,6 +139,15 @@ internal static partial class VeiledRecipeState
         }
 
         return !recipe.m_requireOnlyOneIngredient || foundKnownOnlyOneIngredient;
+    }
+
+    // Valheim 1.0.7 uses a separate ingredient set at an upgrader station.
+    // This selects applicable resources only; discovery and consumption keep their own rules.
+    internal static bool IsRecipeRequirementActive(Player player, Piece.Requirement requirement)
+    {
+        CraftingStation? station = player.GetCurrentCraftingStation();
+        bool upgrader = station != null && station.m_upgrader;
+        return requirement.m_upgraderResource == upgrader;
     }
 
     private static bool IsRecipeEnabledForPlayer(Player player, Recipe recipe)

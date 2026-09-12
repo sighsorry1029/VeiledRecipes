@@ -234,7 +234,9 @@ internal static class InventoryGuiUpdateRecipePatch
         int quality = itemData == null ? 1 : itemData.m_quality + 1;
         bool multiCrafting = itemData == null && (ZInput.GetButton("AltPlace") || ZInput.GetButton("JoyLStick"));
         int craftMultiplier = multiCrafting ? gui.m_multiCraftAmount : 1;
-        bool allowedQuality = recipe.m_item != null && quality <= recipe.m_item.m_itemData.m_shared.m_maxQuality;
+        CraftingStation? station = player.GetCurrentCraftingStation();
+        bool upgrader = station != null && station.m_upgrader;
+        bool allowedQuality = recipe.m_item != null && (upgrader || quality <= recipe.m_item.m_itemData.m_shared.m_maxQuality);
 
         gui.m_recipeIcon.enabled = true;
         if (recipe.m_item != null)
@@ -266,8 +268,10 @@ internal static class InventoryGuiUpdateRecipePatch
         }
 
         gui.m_minStationLevelIcon.gameObject.SetActive(true);
+        CraftingStation? station = player.GetCurrentCraftingStation();
+        int requiredLevel = station != null && station.m_upgrader ? 1 : recipe.GetRequiredStationLevel(quality);
         gui.m_minStationLevelText.text = VeiledRecipeState.KnowsRecipeStationRequirement(player, recipe, quality)
-            ? recipe.GetRequiredStationLevel(quality).ToString()
+            ? requiredLevel.ToString()
             : VeiledRecipeState.UnknownRequirementText;
         gui.m_minStationLevelText.color = gui.m_minStationLevelBasecolor;
     }
@@ -282,7 +286,7 @@ internal static class InventoryGuiUpdateRecipePatch
             int requirementCount = 0;
             foreach (Piece.Requirement requirement in requirements)
             {
-                if (requirement?.m_resItem != null && requirement.GetAmount(quality) > 0)
+                if (requirement?.m_resItem != null && VeiledRecipeState.IsRecipeRequirementActive(player, requirement) && requirement.GetAmount(quality) > 0)
                 {
                     requirementCount++;
                 }
@@ -296,7 +300,7 @@ internal static class InventoryGuiUpdateRecipePatch
                     break;
                 }
 
-                if (requirement?.m_resItem == null || requirement.GetAmount(quality) <= 0)
+                if (requirement?.m_resItem == null || !VeiledRecipeState.IsRecipeRequirementActive(player, requirement) || requirement.GetAmount(quality) <= 0)
                 {
                     continue;
                 }

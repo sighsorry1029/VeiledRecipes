@@ -50,6 +50,11 @@ internal static partial class VeiledRecipeState
             return true;
         }
 
+        CraftingStation? currentStation = player.GetCurrentCraftingStation();
+        if (currentStation != null && currentStation.m_upgrader)
+        {
+            return HasKnownRecipeStationLevel(player, currentStation.m_name, 1);
+        }
         CraftingStation requiredStation = recipe.GetRequiredStation(quality);
         return requiredStation == null || HasKnownRecipeStationLevel(player, requiredStation.m_name, recipe.GetRequiredStationLevel(quality));
     }

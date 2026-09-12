@@ -1,12 +1,41 @@
-# AAA Compatibility Checks
+# Compatibility checks
+
+## Valheim 1.0.7
+
+Build the plugin and test runners, and deploy only the merged plugin:
+
+```powershell
+dotnet build VeiledRecipes.sln -c Debug -p:DeployToGame=true
+dotnet msbuild Tests/BuildUi/BuildUi.Tests.csproj -t:Check -p:Configuration=Debug -nologo
+dotnet msbuild Tests/AaaCompatibility.Tests.csproj -t:Check -p:Configuration=Debug -nologo
+python Tests/GameCompatibilityCheck/run_mono.py 'C:/Program Files (x86)/Steam/steamapps/common/Valheim' bin/Debug/VeiledRecipes.dll 'C:/Program Files (x86)/Steam/steamapps/common/Valheim/BepInEx/core'
+```
+
+For the dedicated-server check, replace the first Python argument with its
+preserved snapshot `original` directory (containing `valheim_server_Data` and
+`MonoBleedingEdge`). Use a 64-bit Python installation matching the Windows Mono
+library. The runner automatically finds the original Managed directory. It
+fails if runtime game assemblies resolve somewhere else.
+
+Build UI checks link the production patches and real Harmony against managed
+UI doubles. They cover state refresh and event lifetime, not real rendering.
+GameCompatibilityCheck compiles against original game DLLs without publicizing.
+It executes managed paths on the game's Mono and validates Harmony declarations,
+but does not install native detours or start a Unity scene. Its two native
+initializer stubs and queued ServerSync startup are not game behavior tests.
+Neither suite exercises a network session. See
+[the compatibility record](../docs/valheim-1.0.7.md) for results and remaining
+in-game checks.
+
+## AAA Compatibility Checks
 
 Build and run with the local Harmony/Cecil dependencies from `environment.props` on Windows:
 
 ```powershell
-dotnet build Tests/AaaCompatibility.Tests.csproj -c Release -t:Check
+dotnet build Tests/AaaCompatibility.Tests.csproj -c Debug -t:Check
 
 # Optionally also inspect the supported AAA DLL's contract:
-dotnet build Tests/AaaCompatibility.Tests.csproj -c Release -t:Check '-p:AaaDllPath=C:\path with spaces\AzuAntiArthriticCrafting.dll'
+dotnet build Tests/AaaCompatibility.Tests.csproj -c Debug -t:Check '-p:AaaDllPath=C:\path with spaces\AzuAntiArthriticCrafting.dll'
 ```
 
 The test project is included in `VeiledRecipes.sln`. A normal project or solution build only compiles the runner; the explicit `Check` target builds it and executes it, failing the command if an assertion fails. The optional `AaaDllPath` property adds read-only DLL contract checks. The supported contract is AAA 2.1.6; an older or changed DLL is expected to fail those checks.

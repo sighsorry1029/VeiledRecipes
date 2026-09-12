@@ -28,19 +28,19 @@ internal static class PlayerPieceRequirementsPatch
 [HarmonyPatch(typeof(PieceTable), nameof(PieceTable.UpdateAvailable))]
 internal static class PieceTableUpdateAvailablePatch
 {
-    private static void Prefix(PieceTable __instance)
+    private static void Prefix(PieceTable __instance, List<List<Piece>> ___m_availablePiecesByCategory)
     {
         VeiledRecipeState.RegisterBuildPieceTable(__instance);
+        EnsureAvailablePieceBuckets(__instance, ___m_availablePiecesByCategory);
     }
 
-    private static void Postfix(PieceTable __instance, Player player)
+    private static void Postfix(PieceTable __instance, Player player, List<List<Piece>> ___m_availablePiecesByCategory)
     {
         if (!VeiledRecipeState.ShowUnknownBuildPieces || player == null)
         {
             return;
         }
 
-        EnsureAvailablePieceBuckets(__instance);
         HashSet<string> availablePieceNames = GetAvailablePiecePrefabNames(__instance);
         foreach (GameObject prefab in __instance.m_pieces)
         {
@@ -54,23 +54,23 @@ internal static class PieceTableUpdateAvailablePatch
                 continue;
             }
 
-            AddAvailablePiece(__instance, piece);
+            AddAvailablePiece(__instance, piece, ___m_availablePiecesByCategory);
             availablePieceNames.Add(prefabName);
         }
     }
 
-    private static void EnsureAvailablePieceBuckets(PieceTable table)
+    private static void EnsureAvailablePieceBuckets(PieceTable table, List<List<Piece>> categories)
     {
         int requiredCount = GetRequiredCategoryBucketCount(table);
-        while (table.m_availablePieces.Count < requiredCount)
+        while (categories.Count < requiredCount)
         {
-            table.m_availablePieces.Add(new List<Piece>());
+            categories.Add(new List<Piece>());
         }
     }
 
     private static int GetRequiredCategoryBucketCount(PieceTable table)
     {
-        int count = table.m_availablePieces.Count;
+        int count = (int)Piece.PieceCategory.Max;
         foreach (GameObject prefab in table.m_pieces)
         {
             Piece? piece = prefab == null ? null : prefab.GetComponent<Piece>();
@@ -92,36 +92,38 @@ internal static class PieceTableUpdateAvailablePatch
     private static HashSet<string> GetAvailablePiecePrefabNames(PieceTable table)
     {
         HashSet<string> names = new();
-        foreach (List<Piece> category in table.m_availablePieces)
+        foreach (Piece existing in table.m_availablePieces)
         {
-            foreach (Piece existing in category)
+            if (existing != null)
             {
-                if (existing != null)
-                {
-                    names.Add(Utils.GetPrefabName(existing.gameObject));
-                }
+                names.Add(Utils.GetPrefabName(existing.gameObject));
             }
         }
 
         return names;
     }
 
-    private static void AddAvailablePiece(PieceTable table, Piece piece)
+    private static void AddAvailablePiece(PieceTable table, Piece piece, List<List<Piece>> categories)
     {
+        int index = (int)piece.m_category;
+        if (piece.m_category != Piece.PieceCategory.All && (index < 0 || index >= categories.Count))
+        {
+            return;
+        }
+        if (!table.m_availablePieces.Add(piece))
+        {
+            return;
+        }
         if (piece.m_category == Piece.PieceCategory.All)
         {
-            foreach (List<Piece> category in table.m_availablePieces)
+            foreach (List<Piece> category in categories)
             {
                 category.Add(piece);
             }
             return;
         }
 
-        int index = (int)piece.m_category;
-        if (index >= 0 && index < table.m_availablePieces.Count)
-        {
-            table.m_availablePieces[index].Add(piece);
-        }
+        categories[index].Add(piece);
     }
 }
 

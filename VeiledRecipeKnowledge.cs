@@ -32,7 +32,7 @@ internal static partial class VeiledRecipeState
             return true;
         }
 
-        return player.m_knownRecipes.Contains(recipe.m_item.m_itemData.m_shared.m_name);
+        return player.IsRecipeKnown(recipe.m_item.m_itemData.m_shared.m_name);
     }
 
     internal static bool IsPieceActuallyKnown(Player player, Piece piece)
@@ -62,7 +62,7 @@ internal static partial class VeiledRecipeState
             return true;
         }
 
-        return player.m_knownRecipes.Contains(piece.m_name) || HasKnownPieceOverride(piece);
+        return player.IsRecipeKnown(piece.m_name) || HasKnownPieceOverride(piece);
     }
 
     internal static bool RequiresRecipeKnowledge(Player player, Recipe recipe)
@@ -203,7 +203,7 @@ internal static partial class VeiledRecipeState
             return true;
         }
 
-        return player.m_knownMaterial.Contains(requirement.m_resItem.m_itemData.m_shared.m_name);
+        return player.IsKnownMaterial(requirement.m_resItem.m_itemData.m_shared.m_name);
     }
 
     private static bool DlcInstalled(string dlc)

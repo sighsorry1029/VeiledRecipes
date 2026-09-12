@@ -17,6 +17,7 @@ internal static partial class VeiledRecipeState
         }
 
         KnownPieceOverrides.Add(predicate);
+        VeiledRecipeBuildUiRefreshPatch.Invalidate();
     }
 
     internal static void UnregisterKnownPieceOverride(Func<Piece, bool> predicate)
@@ -26,7 +27,7 @@ internal static partial class VeiledRecipeState
             return;
         }
 
-        KnownPieceOverrides.Remove(predicate);
+        if (KnownPieceOverrides.Remove(predicate)) VeiledRecipeBuildUiRefreshPatch.Invalidate();
     }
 
     internal static void RegisterKnownPiecePrefabOverride(string prefabName)
@@ -36,7 +37,7 @@ internal static partial class VeiledRecipeState
             return;
         }
 
-        KnownPiecePrefabOverrides.Add(prefabName.Trim());
+        if (KnownPiecePrefabOverrides.Add(prefabName.Trim())) VeiledRecipeBuildUiRefreshPatch.Invalidate();
     }
 
     internal static void UnregisterKnownPiecePrefabOverride(string prefabName)
@@ -46,7 +47,7 @@ internal static partial class VeiledRecipeState
             return;
         }
 
-        KnownPiecePrefabOverrides.Remove(prefabName.Trim());
+        if (KnownPiecePrefabOverrides.Remove(prefabName.Trim())) VeiledRecipeBuildUiRefreshPatch.Invalidate();
     }
 
     internal static void RegisterKnownPieceTypeOverride(string typeName)
@@ -56,7 +57,7 @@ internal static partial class VeiledRecipeState
             return;
         }
 
-        KnownPieceTypeOverrides.Add(typeName.Trim());
+        if (KnownPieceTypeOverrides.Add(typeName.Trim())) VeiledRecipeBuildUiRefreshPatch.Invalidate();
     }
 
     internal static void UnregisterKnownPieceTypeOverride(string typeName)
@@ -66,7 +67,7 @@ internal static partial class VeiledRecipeState
             return;
         }
 
-        KnownPieceTypeOverrides.Remove(typeName.Trim());
+        if (KnownPieceTypeOverrides.Remove(typeName.Trim())) VeiledRecipeBuildUiRefreshPatch.Invalidate();
     }
 
     private static bool HasKnownPieceOverride(Piece piece)

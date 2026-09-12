@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\environment.props" />
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="0Harmony" HintPath="$(BepInExPath)\core\0Harmony.dll" Private="false" />
+    <Reference Include="BepInEx" HintPath="$(BepInExPath)\core\BepInEx.dll" Private="false" />
+    <Reference Include="assembly_valheim" HintPath="$(CorlibPath)\assembly_valheim.dll" Private="false" />
+    <Reference Include="assembly_utils" HintPath="$(CorlibPath)\assembly_utils.dll" Private="false" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="$(CorlibPath)\UnityEngine.CoreModule.dll" Private="false" />
+  </ItemGroup>
+</Project>
