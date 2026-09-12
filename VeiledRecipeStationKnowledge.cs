@@ -45,11 +45,6 @@ internal static partial class VeiledRecipeState
             return false;
         }
 
-        if (ShouldBypassForAdmin(player))
-        {
-            return true;
-        }
-
         CraftingStation? currentStation = player.GetCurrentCraftingStation();
         if (currentStation != null && currentStation.m_upgrader)
         {
@@ -62,11 +57,6 @@ internal static partial class VeiledRecipeState
     internal static bool KnowsPieceStationRequirement(Player player, Piece piece)
     {
         if (player == null || piece == null || piece.m_craftingStation == null)
-        {
-            return true;
-        }
-
-        if (ShouldBypassForAdmin(player))
         {
             return true;
         }

@@ -64,12 +64,12 @@ internal static class AaaCompatibilityTests
         Check(ReferenceEquals(VeiledRecipeState.LastTarget, target), "Hover uses the actual pair target");
         Check(tooltip.m_topic == "Original title" && tooltip.m_text == "Original description", "Source tooltip strings are preserved");
         RecipeHoverTooltip.m_current = tooltip;
-        player.Bypass = true;
+        player.KnowsAll = true;
         tooltip.LateUpdate();
-        Check(topic.text == "Original title" && text.text == "Original description", "Open tooltip restores on bypass without another hover");
-        player.Bypass = false;
+        Check(topic.text == "Original title" && text.text == "Original description", "Open tooltip restores on a global unlock without another hover");
+        player.KnowsAll = false;
         tooltip.LateUpdate();
-        Check(topic.text == "???", "Open tooltip is masked again when bypass ends");
+        Check(topic.text == "???", "Open tooltip is masked again when the global unlock ends");
         VeiledRecipeState.UnknownNameText = "Hidden";
         VeiledRecipeState.UnknownDescriptionText = "Unknown";
         tooltip.LateUpdate();
@@ -95,10 +95,10 @@ internal static class AaaCompatibilityTests
         Check(ReferenceEquals(VeiledRecipeState.LastTarget, target), "Tracking guard preserves selected upgrade target context");
         tracker.AddSelectedRecipe(known);
         Check(tracker.RecipeUIs.Count == 1, "Known and non-masked recipe-less entries can be tracked");
-        player.Bypass = true;
+        player.KnowsAll = true;
         tracker.AddSelectedRecipe(unknown);
-        Check(tracker.RecipeUIs.Count == 2, "Bypass permits tracking");
-        player.Bypass = false;
+        Check(tracker.RecipeUIs.Count == 2, "Global unlock permits tracking");
+        player.KnowsAll = false;
         tracker.ToggleUI();
         Check(!tracker.RecipeUIs[1].recipeStub.activeSelf && tracker.RecipeUIs[0].recipeStub.activeSelf, "Previously tracked unknown entries are hidden");
         Check(tracker.RecipeUIs.Count == 2, "Hiding does not delete tracker records");
@@ -227,13 +227,13 @@ internal static class AaaCompatibilityTests
         Paginator.Page = 2;
         gui.UpdateRecipeList(source);
         Check(PageIs(known3, unknown2), "Unlock: no recipe is lost or duplicated across groups");
-        player.Bypass = true;
+        player.KnowsAll = true;
         Paginator.Page = 1;
         gui.UpdateRecipeList(source);
-        Check(PageIs(unknown2, known1), "Admin bypass: cached pages use AAA order");
-        player.Bypass = false;
+        Check(PageIs(unknown2, known1), "Global unlock: cached pages use AAA order");
+        player.KnowsAll = false;
         gui.UpdateRecipeList(source);
-        Check(PageIs(known1, known2), "Bypass disabled: cached pages regroup again");
+        Check(PageIs(known1, known2), "Global unlock disabled: cached pages regroup again");
         Player.m_localPlayer = null;
         gui.UpdateRecipeList(source);
         Check(PageIs(unknown2, known1), "No local player: paging remains unchanged");
@@ -242,7 +242,7 @@ internal static class AaaCompatibilityTests
         gui.UpdateRecipeList(source);
         Check(PageIs(unknown2, known1), "Non-preview entries keep the same grouping policy as the vanilla patch");
         unknown2.PreviewAllowed = true;
-        Check(Paginator.Cached.SequenceEqual(originalOrder), "Knowledge/config/bypass changes leave AAA's cache intact");
+        Check(Paginator.Cached.SequenceEqual(originalOrder), "Knowledge/config/global-unlock changes leave AAA's cache intact");
 
         var noRecipe = new Recipe { Masked = true, NoLearnableRecipe = true, SortOrder = 5 };
         var owned = new ItemDrop.ItemData();

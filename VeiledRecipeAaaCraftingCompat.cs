@@ -198,7 +198,7 @@ internal static class VeiledRecipeAaaCraftingCompat
 
     private static void TooltipLateUpdatePostfix(Component __instance, Component ___m_current, GameObject ___m_tooltip, string ___m_topic, string ___m_text)
     {
-        // Only the active tooltip needs rechecking when knowledge or admin bypass changes.
+        // Only the active tooltip needs rechecking when recipe visibility changes.
         if (__instance == ___m_current)
         {
             UpdateTooltip(__instance, ___m_tooltip, ___m_topic, ___m_text);

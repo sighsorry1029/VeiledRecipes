@@ -8,7 +8,6 @@ namespace VeiledRecipes;
 internal static class VeiledRecipeInfinityHammerCompat
 {
     private const string PluginGuid = "infinity_hammer";
-    private const string BuildMenuToolTypeName = "InfinityHammer.BuildMenuTool";
     private const string HammerSelectTypeName = "InfinityHammer.HammerSelect";
     private const string SelectionTypeName = "InfinityHammer.Selection";
     private const string BaseSelectionTypeName = "InfinityHammer.BaseSelection";
@@ -22,7 +21,6 @@ internal static class VeiledRecipeInfinityHammerCompat
 
     internal static void RegisterKnownPieceOverrides()
     {
-        VeiledRecipeState.RegisterKnownPieceTypeOverride(BuildMenuToolTypeName);
         VeiledRecipeState.RegisterKnownPieceOverride(IsKnownActiveSelectionPiece);
     }
 

@@ -69,7 +69,7 @@ public class MessageHud { public enum MessageType { Center } }
 public class Player
 {
     public static Player? m_localPlayer;
-    public bool Bypass;
+    public bool KnowsAll;
     public string? LastMessage;
     public void Message(MessageHud.MessageType type, string text) => LastMessage = text;
 }
@@ -124,15 +124,15 @@ namespace VeiledRecipes
         public static bool ShouldMaskRecipe(Player player, Recipe recipe, ItemDrop.ItemData? item = null)
         {
             LastTarget = item;
-            return recipe.Masked && !player.Bypass && !(recipe.NoLearnableRecipe && item != null);
+            return recipe.Masked && !player.KnowsAll && !(recipe.NoLearnableRecipe && item != null);
         }
-        public static bool IsUnknownRecipePreview(Player player, Recipe recipe) => recipe.Masked && recipe.PreviewAllowed && !player.Bypass;
+        public static bool IsUnknownRecipePreview(Player player, Recipe recipe) => recipe.Masked && recipe.PreviewAllowed && !player.KnowsAll;
         public static VeiledRecipeVisibilityState GetRecipeVisibilityState(Player player, Recipe recipe, ItemDrop.ItemData? targetItem = null)
         {
             if (!ShouldMaskRecipe(player, recipe, targetItem)) return VeiledRecipeVisibilityState.Known;
             return recipe.PreviewAllowed ? VeiledRecipeVisibilityState.UnknownPreview : VeiledRecipeVisibilityState.Hidden;
         }
-        public static bool RequiresRecipeKnowledge(Player player, Recipe recipe) => recipe.RequiresKnowledge && !player.Bypass;
+        public static bool RequiresRecipeKnowledge(Player player, Recipe recipe) => recipe.RequiresKnowledge && !player.KnowsAll;
     }
     public static class InventoryGuiAddRecipeToListPatch
     {

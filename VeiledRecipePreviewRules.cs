@@ -99,11 +99,6 @@ internal static partial class VeiledRecipeState
             return false;
         }
 
-        if (ShouldBypassForAdmin(player))
-        {
-            return true;
-        }
-
         if (recipe.m_craftingStation != null && !HasKnownRecipeStationLevel(player, recipe.m_craftingStation.m_name, recipe.m_minStationLevel))
         {
             return false;
@@ -119,10 +114,13 @@ internal static partial class VeiledRecipeState
 
     private static bool HasDiscoveredRecipeMaterials(Player player, Recipe recipe)
     {
+        CraftingStation? station = player.GetCurrentCraftingStation();
         bool foundKnownOnlyOneIngredient = false;
         foreach (Piece.Requirement requirement in recipe.m_resources)
         {
-            if (requirement?.m_resItem == null || requirement.m_amount <= 0 || !IsRecipeRequirementActive(player, requirement))
+            if (requirement?.m_resItem == null ||
+                requirement.m_amount <= 0 ||
+                (station == null && requirement.m_upgraderResource))
             {
                 continue;
             }
@@ -141,9 +139,9 @@ internal static partial class VeiledRecipeState
         return !recipe.m_requireOnlyOneIngredient || foundKnownOnlyOneIngredient;
     }
 
-    // Valheim 1.0.7 uses a separate ingredient set at an upgrader station.
-    // This selects applicable resources only; discovery and consumption keep their own rules.
-    internal static bool IsRecipeRequirementActive(Player player, Piece.Requirement requirement)
+    // Valheim 1.0.12 keeps display and consumption station-specific, while recipe
+    // discovery considers both ordinary and upgrader resources when a station is active.
+    internal static bool IsRecipeRequirementActiveAtCurrentStation(Player player, Piece.Requirement requirement)
     {
         CraftingStation? station = player.GetCurrentCraftingStation();
         bool upgrader = station != null && station.m_upgrader;

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.5
+
+- Updated recipe discovery for Valheim 1.0.12 so ordinary and upgrader materials both participate while a crafting station is active, while requirement display and consumption remain station-specific.
+- Removed the optional admin bypass and its recurring permission probe. Vanilla global/no-cost unlocks continue to reveal recipes and pieces, and the legacy public `IsAdminBypassActive` member remains available but always reports `false`.
+- Simplified InfinityHammer compatibility by relying on the normal registered-piece boundary for runtime build-menu tools while preserving active command selections.
+- Verified the built-in AAA Crafting hook, tooltip, tracker, and pagination contracts against AAA Crafting 2.1.8 without adding a dependency or modifying its DLL.
+
 ## 1.1.4
 
 - Removed the light anti-aliased edge around veiled Hammer-tab piece icons by rendering only the black silhouette while veiled. Hover and click behavior remains intact, and known pieces without enough materials remain grey.

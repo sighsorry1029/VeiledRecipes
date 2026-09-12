@@ -136,10 +136,6 @@ These options are synced through ServerSync when configuration locking is enable
 
 These options are not synced. Each player can choose their own client behavior.
 
-- `Enable Admin Bypass`
-  Lets a verified host or server admin bypass recipe and build-piece masking, crafting restrictions, and placement restrictions on this client. Enabling it as a non-admin has no effect.
-  Default: `false`
-
 - `Group Unknown Recipe Previews Below Known Recipes`
   Groups masked crafting recipe previews below actually unlocked recipes in crafting station recipe lists.
   Default: `true`
@@ -184,7 +180,7 @@ SwordCheat, SledgeCheat
 Built-in support for AzuAntiArthriticCrafting activates automatically when that mod is installed. No AAA DLL changes or additional configuration are required.
 
 - Unknown recipes stay masked in AAA's list and grid layouts, including names, icons, output counts, and hover tooltips.
-- Hover tooltips return to their normal content when the recipe is learned or admin bypass becomes active.
+- Hover tooltips return to their normal content when the recipe is learned or a vanilla global/no-cost unlock becomes active.
 - Unknown recipes cannot be added to AAA's recipe tracker. Already tracked recipes are temporarily hidden while recipe knowledge is required, without removing the tracked entries.
 - Known recipes and recipe-less upgrade/socket targets retain their existing behavior. With `Group Unknown Recipe Previews Below Known Recipes` enabled, previews are grouped after known recipes across the entire filtered list before AAA splits it into pages, in both craft and upgrade views. AAA's original order is preserved within each group.
 - Grouping uses current recipe knowledge whenever a page is generated, including cached page changes. Disabling the option restores AAA's original order without changing its cache or filtering rules. Unsupported AAA pagination changes fall back to page-local grouping with a log warning.
@@ -213,7 +209,7 @@ Useful members include:
 - `UnknownDescriptionText`
 - `UnknownRequirementText`
 - `GroupUnknownRecipePreviewsBelowKnownRecipes`
-- `IsAdminBypassActive`
+- `IsAdminBypassActive` (legacy compatibility member; always `false`)
 - `GetRecipeVisibilityState(recipe)`
 - `GetRecipeVisibilityState(player, recipe)`
 - `IsUnknownRecipePreview(recipe)`

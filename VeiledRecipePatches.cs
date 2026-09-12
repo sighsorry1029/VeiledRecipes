@@ -16,11 +16,6 @@ internal static class PlayerRecipeRequirementsPatch
             return true;
         }
 
-        if (VeiledRecipeState.ShouldBypassForAdmin(__instance))
-        {
-            return true;
-        }
-
         if (discover && VeiledRecipeState.RequireStationInteractionForRecipeUnlock)
         {
             __result = VeiledRecipeState.CanDiscoverRecipe(__instance, recipe);
@@ -286,7 +281,7 @@ internal static class InventoryGuiUpdateRecipePatch
             int requirementCount = 0;
             foreach (Piece.Requirement requirement in requirements)
             {
-                if (requirement?.m_resItem != null && VeiledRecipeState.IsRecipeRequirementActive(player, requirement) && requirement.GetAmount(quality) > 0)
+                if (requirement?.m_resItem != null && VeiledRecipeState.IsRecipeRequirementActiveAtCurrentStation(player, requirement) && requirement.GetAmount(quality) > 0)
                 {
                     requirementCount++;
                 }
@@ -300,7 +295,7 @@ internal static class InventoryGuiUpdateRecipePatch
                     break;
                 }
 
-                if (requirement?.m_resItem == null || !VeiledRecipeState.IsRecipeRequirementActive(player, requirement) || requirement.GetAmount(quality) <= 0)
+                if (requirement?.m_resItem == null || !VeiledRecipeState.IsRecipeRequirementActiveAtCurrentStation(player, requirement) || requirement.GetAmount(quality) <= 0)
                 {
                     continue;
                 }

@@ -66,10 +66,10 @@ internal static class Program
         Check(ui.Button.LocalizedSearchTerms.Contains("secretmaterial"), "learning a material refreshes masked search");
         Check(tags.GetTagDisplayName(1) == "Secret Material", "learning a material restores its tag");
 
-        player.Bypass = true; Tick(ui);
-        Check(ui.Button.Icon.color == UnityEngine.Color.white, "admin bypass restores open menu");
-        player.Bypass = false; Tick(ui);
-        Check(!ui.Button.Icon.enabled && ui.Button.Guard.Veil!.gameObject.activeSelf, "revoking bypass remasks open menu");
+        player.NoCost = true; Tick(ui);
+        Check(ui.Button.Icon.color == UnityEngine.Color.white, "no-cost mode restores open menu");
+        player.NoCost = false; Tick(ui);
+        Check(!ui.Button.Icon.enabled && ui.Button.Guard.Veil!.gameObject.activeSelf, "leaving no-cost mode remasks open menu");
         VeiledRecipeState.UnknownNameText = "Hidden";
         VeiledRecipeBuildUiRefreshPatch.Invalidate(); Tick(ui);
         Check(ui.Button.LocalizedSearchTerms.Contains("hidden"), "display configuration refreshes search");
@@ -184,7 +184,7 @@ public class Player
     public HashSet<string> Recipes => m_knownRecipes;
     public HashSet<string> Materials => m_knownMaterial;
     public Dictionary<string, int> Stations => m_knownStations;
-    public bool Bypass;
+    public bool NoCost { get => m_noPlacementCost; set => m_noPlacementCost = value; }
     public bool HasRequirements = true;
     public int GhostRefreshes;
     public bool InPlaceMode() => true;
@@ -309,8 +309,7 @@ namespace VeiledRecipes
         public static bool ShowPreviews = true;
         public static string UnknownNameText = "???";
         public static string UnknownRequirementText = "?";
-        public static bool ShouldMaskPiece(Player player, Piece piece) => !player.Bypass && !player.Recipes.Contains(piece.m_name);
-        public static bool ShouldBypassForAdmin(Player player) => player.Bypass;
-        public static bool IsMaterialKnown(Player player, Piece.Requirement requirement) => player.Bypass || player.Materials.Contains(requirement.m_resItem.m_itemData.m_shared.m_name);
+        public static bool ShouldMaskPiece(Player player, Piece piece) => !player.NoCostCheat() && !player.Recipes.Contains(piece.m_name);
+        public static bool IsMaterialKnown(Player player, Piece.Requirement requirement) => player.NoCostCheat() || player.Materials.Contains(requirement.m_resItem.m_itemData.m_shared.m_name);
     }
 }

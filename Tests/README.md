@@ -1,6 +1,6 @@
 # Compatibility checks
 
-## Valheim 1.0.7
+## Valheim 1.0.12
 
 Build the plugin and test runners, and deploy only the merged plugin:
 
@@ -24,8 +24,9 @@ It executes managed paths on the game's Mono and validates Harmony declarations,
 but does not install native detours or start a Unity scene. Its two native
 initializer stubs and queued ServerSync startup are not game behavior tests.
 Neither suite exercises a network session. See
-[the compatibility record](../docs/valheim-1.0.7.md) for results and remaining
-in-game checks.
+[the Valheim 1.0.7 compatibility record](../docs/valheim-1.0.7.md) for the
+previous migration baseline; the current 1.0.12 material-discovery cases are
+checked by `GameCompatibilityCheck` above.
 
 ## AAA Compatibility Checks
 
@@ -38,7 +39,7 @@ dotnet build Tests/AaaCompatibility.Tests.csproj -c Debug -t:Check
 dotnet build Tests/AaaCompatibility.Tests.csproj -c Debug -t:Check '-p:AaaDllPath=C:\path with spaces\AzuAntiArthriticCrafting.dll'
 ```
 
-The test project is included in `VeiledRecipes.sln`. A normal project or solution build only compiles the runner; the explicit `Check` target builds it and executes it, failing the command if an assertion fails. The optional `AaaDllPath` property adds read-only DLL contract checks. The supported contract is AAA 2.1.6; an older or changed DLL is expected to fail those checks.
+The test project is included in `VeiledRecipes.sln`. A normal project or solution build only compiles the runner; the explicit `Check` target builds it and executes it, failing the command if an assertion fails. The optional `AaaDllPath` property adds read-only DLL contract checks. The most recently verified DLL contract is AAA 2.1.8; a changed DLL is expected to fail those checks when a required member or pagination hook changes.
 
 The runner links the production compatibility code and visibility enum, and applies real Harmony patches to managed UI doubles. It also patches an already-registered paginator prefix/postfix to exercise fresh and cached craft pages, upgrade pairs, filtering, target-item context, and grouping changes. A temporary test-only transpiler preserves the upgrade fixture's behavior while changing its IL: production initialization successfully installs the craft paging hook, then fails on the upgrade hook. Checks verify paging rollback, preservation of other Harmony owners, live tooltip masking after failure, and successful paging reinstallation. No production test hook is used.
 
@@ -50,9 +51,9 @@ In-game checks with AAA 2.1.6:
 - Hover by mouse and gamepad, select a recipe, switch pages, search, change filters, reopen the crafting UI.
 - Use several pages with mixed known/unknown recipes: all known entries precede the previews across pages in craft and upgrade views. Names and variants keep AAA's order within each group.
 - Turn preview grouping off and on, then switch pages: original AAA order restores when off, while masking remains enabled and grid cells retain their layout.
-- Learn a recipe or toggle admin bypass and change pages (including cached page flips): grouping uses current knowledge. Test searches, filters, favorites, and partial last pages.
-- Learn a recipe or toggle admin bypass while hovering: text masks/restores without moving the pointer.
-- Try tracking an unknown recipe. Track with bypass, disable bypass, then learn it: the entry hides and returns without being deleted.
+- Learn a recipe or toggle a vanilla global/no-cost unlock and change pages (including cached page flips): grouping uses current knowledge. Test searches, filters, favorites, and partial last pages.
+- Learn a recipe or toggle a vanilla global/no-cost unlock while hovering: text masks/restores without moving the pointer.
+- Try tracking an unknown recipe. Track with a global unlock, disable it, then learn the recipe: the entry hides and returns without being deleted.
 - Verify known ingredients still show, unknown ingredients stay hidden, and recipe-less upgrade/socket targets remain usable.
 - Start without AAA: vanilla UI and existing API consumers still behave normally. ZenUI-specific integration is outside this patch.
 
@@ -61,7 +62,7 @@ In-game checks with AAA 2.1.6:
 These checks remain separate from the managed AAA runner:
 
 - Crafting requirements: compare known and unknown ingredients at each quality, multicraft amounts, maximum quality, empty requirements, more requirements than visible slots, and the last partial cycling page. The allocation-free display walks requirements twice; check compatibility with mods that patch `Piece.Requirement.GetAmount`.
-- Recipe knowledge: compare ordinary craft entries, recipe-less upgrade/socket targets, and outputs with enabled or seasonal crafting recipes. Check grouping with previews disabled or blacklisted, with and without admin bypass.
+- Recipe knowledge: compare ordinary craft entries, recipe-less upgrade/socket targets, and outputs with enabled or seasonal crafting recipes. Check grouping with previews disabled or blacklisted and with vanilla global/no-cost unlocks.
 - Build UI: check known, unknown, blacklisted, repair/remove, runtime, and InfinityHammer pieces. Include AzuCraftyBoxes HUD updates; both HUD masking patches must remain effective. Reopen and recreate UI to check destroyed or missing elements.
 - Crafting and placement: blocked actions must leave inventory and world objects unchanged. Allowed actions, multicraft, repeated input, and cancellation must consume and create only the expected items; preserve the selected upgrade target.
 - Station persistence: exercise proximity and interaction settings, station level changes, save/rejoin, and synchronized settings on a client, host, and dedicated server.

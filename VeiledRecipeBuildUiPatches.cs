@@ -149,10 +149,10 @@ internal static class VeiledRecipeBuildUiRefreshPatch
         Dictionary<string, int> stations = KnownStations(player);
         bool allPieces = ZoneSystem.instance != null && ZoneSystem.instance.GetGlobalKey(GlobalKeys.AllPiecesUnlocked);
         bool freePlacement = NoPlacementCost(player) || allPieces;
-        bool bypass = VeiledRecipeState.ShouldBypassForAdmin(player) || player.NoCostCheat();
+        bool noCostCheat = player.NoCostCheat();
         int revision = Volatile.Read(ref _revision);
         bool changed = snapshot.Player != player || snapshot.Table != ___m_currentBuildTool ||
-                       snapshot.Revision != revision || snapshot.FreePlacement != freePlacement || snapshot.Bypass != bypass ||
+                       snapshot.Revision != revision || snapshot.FreePlacement != freePlacement || snapshot.NoCostCheat != noCostCheat ||
                        !snapshot.Recipes.SetEquals(recipes) || !snapshot.Materials.SetEquals(materials) || !snapshot.SameStations(stations);
         if (!changed) return;
 
@@ -160,7 +160,7 @@ internal static class VeiledRecipeBuildUiRefreshPatch
         snapshot.Table = ___m_currentBuildTool;
         snapshot.Revision = revision;
         snapshot.FreePlacement = freePlacement;
-        snapshot.Bypass = bypass;
+        snapshot.NoCostCheat = noCostCheat;
         snapshot.Recipes.Clear(); snapshot.Recipes.UnionWith(recipes);
         snapshot.Materials.Clear(); snapshot.Materials.UnionWith(materials);
         snapshot.Stations.Clear();
@@ -181,7 +181,7 @@ internal static class VeiledRecipeBuildUiRefreshPatch
         public PieceTable? Table;
         public int Revision;
         public bool FreePlacement;
-        public bool Bypass;
+        public bool NoCostCheat;
         public float NextCheck;
         public readonly HashSet<string> Recipes = new();
         public readonly HashSet<string> Materials = new();
