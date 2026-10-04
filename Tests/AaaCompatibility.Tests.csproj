@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="GameCompatibilityCheck\**;BuildUi\**" />
+    <Compile Remove="GameCompatibilityCheck\**;BuildUi\**;ContainerDiscovery\**" />
     <Reference Include="0Harmony">
       <HintPath>$(BepInExPath)\core\0Harmony.dll</HintPath>
     </Reference>

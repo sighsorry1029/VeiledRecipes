@@ -16,6 +16,8 @@ internal static partial class VeiledRecipeState
 
     internal static bool EnableStationProximityDiscovery => IsOn(VeiledRecipesPlugin.EnableStationProximityDiscovery);
 
+    internal static bool LearnMaterialsFromOpenedContainers => IsOn(VeiledRecipesPlugin.LearnMaterialsFromOpenedContainers);
+
     internal static string UnknownNameText => SafeText(VeiledRecipesPlugin.UnknownNameText, VeiledRecipeConstants.UnknownNameFallback);
 
     internal static string UnknownDescriptionText => SafeText(VeiledRecipesPlugin.UnknownDescriptionText, VeiledRecipeConstants.UnknownDescriptionFallback);

@@ -14,7 +14,7 @@ namespace VeiledRecipes;
 public class VeiledRecipesPlugin : BaseUnityPlugin
 {
     internal const string ModName = "VeiledRecipes";
-    internal const string ModVersion = "1.1.5";
+    internal const string ModVersion = "1.1.6";
     internal const string Author = "sighsorry";
     public const string ModGUID = $"{Author}.{ModName}";
     private static string ConfigFileName = $"{ModGUID}.cfg";
@@ -50,6 +50,7 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
             RequireStationKnowledgeForUnknownBuildPieces = config("2 - Veiled Recipes", "Require Station Knowledge For Unknown Build Pieces", Toggle.On, "If on, unknown build-piece previews that require a crafting station are shown only after the player knows that station.");
             RequireStationInteractionForRecipeUnlock = config("2 - Veiled Recipes", "Require Station Interaction For Recipe Unlock", Toggle.On, "If on, recipes that require a crafting station unlock only after the player has interacted with the required station level. If off, Valheim's normal station discovery behavior is used for recipe station knowledge.");
             EnableStationProximityDiscovery = config("2 - Veiled Recipes", "Enable Station Proximity Discovery", Toggle.On, "If on, Valheim's normal crafting station discovery radius is used. If off, walking near a crafting station does not discover it; interacting with the station is required.");
+            LearnMaterialsFromOpenedContainers = config("2 - Veiled Recipes", "Learn Materials From Opened Containers", Toggle.Off, "If on, items displayed in an opened container are discovered as if picked up, without moving them. Uses Valheim's normal item discovery, including trophy records and personal raid conditions. Station requirements still apply. Turning this off does not remove discoveries already saved on the character.");
             RecipePreviewPrefabBlacklist = config("2 - Veiled Recipes", "Recipe Preview Prefab Blacklist", "", "Comma-separated item prefab names whose unknown crafting recipe previews should never be shown. This does not hide recipes after they are actually unlocked. Example: ArmorIronLegs, SwordIron");
             PiecePreviewPrefabBlacklist = config("2 - Veiled Recipes", "Piece Preview Prefab Blacklist", "", "Comma-separated piece prefab names whose unknown build piece previews should never be shown. This does not hide pieces after they are actually unlocked. Example: piece_workbench_ext1, piece_chest");
             RequirementPreviewPrefabBlacklist = config("2 - Veiled Recipes", "Requirement Preview Prefab Blacklist", "SwordCheat, SledgeCheat", "Comma-separated ingredient/resource prefab names that prevent unknown crafting recipe and build-piece previews from being shown when required by that recipe or piece. This does not hide anything after it is actually unlocked.");
@@ -65,6 +66,7 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
 
             Assembly assembly = Assembly.GetExecutingAssembly();
             _harmony.PatchAll(assembly);
+            VeiledRecipeContainerDiscoveryPatch.Start();
             VeiledRecipeAaaCraftingCompat.Initialize();
             Config.SettingChanged += OnSettingChanged;
             SetupWatcher();
@@ -87,6 +89,7 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
         }
         finally
         {
+            VeiledRecipeContainerDiscoveryPatch.Stop();
             _watcher?.Dispose();
         }
     }
@@ -94,6 +97,8 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
     private static void OnSettingChanged(object sender, SettingChangedEventArgs args)
     {
         VeiledRecipeBuildUiRefreshPatch.Invalidate();
+        if (!VeiledRecipeState.LearnMaterialsFromOpenedContainers)
+            VeiledRecipeContainerDiscoveryPatch.Reset();
     }
 
     private void SetupWatcher()
@@ -176,6 +181,7 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
     internal static ConfigEntry<Toggle> RequireStationKnowledgeForUnknownBuildPieces = null!;
     internal static ConfigEntry<Toggle> RequireStationInteractionForRecipeUnlock = null!;
     internal static ConfigEntry<Toggle> EnableStationProximityDiscovery = null!;
+    internal static ConfigEntry<Toggle> LearnMaterialsFromOpenedContainers = null!;
     internal static ConfigEntry<string> RecipePreviewPrefabBlacklist = null!;
     internal static ConfigEntry<string> PiecePreviewPrefabBlacklist = null!;
     internal static ConfigEntry<string> RequirementPreviewPrefabBlacklist = null!;

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.6
+
+- Added the server-synced `Learn Materials From Opened Containers` option, disabled by default. When enabled, items are discovered after a container's contents are displayed and when those contents change while open, without moving items or changing their quantities.
+- Uses Valheim's normal item discovery, including trophy records and personal raid eligibility. Station requirements still apply, and discoveries remain on the character after the option is turned off.
+- Added automated checks for container discovery, live configuration changes, and subscription cleanup when containers, players, or UI instances change.
+- Updated the package's BepInEx dependency to 5.4.2351.
+
 ## 1.1.5
 
 - Updated recipe discovery for Valheim 1.0.12 so ordinary and upgrader materials both participate while a crafting station is active, while requirement display and consumption remain station-specific.

@@ -101,6 +101,9 @@
         <Reference Include="UnityEngine.InputLegacyModule">
             <HintPath>$(CorlibPath)\UnityEngine.InputLegacyModule.dll</HintPath>
         </Reference>
+        <Reference Include="UnityEngine.AnimationModule">
+            <HintPath>$(CorlibPath)\UnityEngine.AnimationModule.dll</HintPath>
+        </Reference>
         <Reference Include="UnityEngine.UI">
             <HintPath>$(CorlibPath)\UnityEngine.UI.dll</HintPath>
         </Reference>
@@ -111,6 +114,7 @@
     <ItemGroup>
         <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2" GeneratePathProperty="true" PrivateAssets="all" ExcludeAssets="all" />
         <Compile Include="Plugin.cs"/>
+        <Compile Include="VeiledRecipeContainerDiscovery.cs"/>
         <Compile Include="Properties\AssemblyInfo.cs"/>
         <Compile Include="VeiledRecipeConstants.cs"/>
         <Compile Include="VeiledRecipeAaaCraftingCompat.cs"/>

@@ -1,5 +1,39 @@
 # Compatibility checks
 
+## Opened-container learning
+
+```powershell
+dotnet build VeiledRecipes.sln -c Debug -p:DeployToGame=true
+dotnet msbuild Tests/ContainerDiscovery/ContainerDiscovery.Tests.csproj -t:Check -p:Configuration=Debug -nologo
+```
+
+The container runner links the production patches and applies real Harmony to
+managed doubles. It checks Off, owner handoff, hidden/stale UI, local-player
+identity, one-time discovery, unchanged-frame work, inventory changes during a
+scan, live toggles, container/player/GUI replacement, close/destroy/shutdown
+cleanup, and unchanged item references, stacks and pickup flags. It does not
+simulate native access checks, trophy/raid logic, persistence or networking.
+
+The hooks and public discovery APIs were checked against the preserved original
+Valheim 1.0.16 client (Steam build 25527674). `GameCompatibilityCheck` below also
+validates their Harmony targets and field-injection signatures on game Mono.
+This is not an in-game test or a full new-version compatibility audit.
+
+Remaining in-game checks, with `Learn Materials From Opened Containers` toggled
+from its default `Off` to `On`:
+
+- Open a permitted chest containing unknown materials, equipment and a trophy;
+  compare discoveries, trophy records, notifications and personal raid eligibility
+  with picking up the same items on an equivalent character. Verify station
+  requirements still apply and inventory quantities/pickup statistics are unchanged.
+- Try a denied/private/in-use container, E-hold stacking, closing by distance,
+  switching chests and changing contents while open. No unopened inventory should
+  teach items. Check owner handoff/content synchronization as a client and host.
+- Toggle Off/On while open, save, disconnect and rejoin; learned knowledge persists
+  in the normal character save and disabling the option does not erase it.
+- Verify server-synced configuration on a dedicated server and multiple clients,
+  plus native and modded container UI. No extra RPC or owner/access override is used.
+
 ## Valheim 1.0.12
 
 Build the plugin and test runners, and deploy only the merged plugin:

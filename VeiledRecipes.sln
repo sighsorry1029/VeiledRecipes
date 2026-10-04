@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildUi.Tests", "Tests\Buil
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameCompatibilityCheck", "Tests\GameCompatibilityCheck\GameCompatibilityCheck.csproj", "{D6D1654F-A244-44A6-894F-B28B71EC6A16}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContainerDiscovery.Tests", "Tests\ContainerDiscovery\ContainerDiscovery.Tests.csproj", "{E332865D-9958-445D-AE14-52D567067898}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,18 @@ Global
 		{D6D1654F-A244-44A6-894F-B28B71EC6A16}.Release|x64.Build.0 = Release|Any CPU
 		{D6D1654F-A244-44A6-894F-B28B71EC6A16}.Release|x86.ActiveCfg = Release|Any CPU
 		{D6D1654F-A244-44A6-894F-B28B71EC6A16}.Release|x86.Build.0 = Release|Any CPU
+		{E332865D-9958-445D-AE14-52D567067898}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E332865D-9958-445D-AE14-52D567067898}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E332865D-9958-445D-AE14-52D567067898}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E332865D-9958-445D-AE14-52D567067898}.Debug|x64.Build.0 = Debug|Any CPU
+		{E332865D-9958-445D-AE14-52D567067898}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E332865D-9958-445D-AE14-52D567067898}.Debug|x86.Build.0 = Debug|Any CPU
+		{E332865D-9958-445D-AE14-52D567067898}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E332865D-9958-445D-AE14-52D567067898}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E332865D-9958-445D-AE14-52D567067898}.Release|x64.ActiveCfg = Release|Any CPU
+		{E332865D-9958-445D-AE14-52D567067898}.Release|x64.Build.0 = Release|Any CPU
+		{E332865D-9958-445D-AE14-52D567067898}.Release|x86.ActiveCfg = Release|Any CPU
+		{E332865D-9958-445D-AE14-52D567067898}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -83,5 +97,6 @@ Global
 		{0272AA50-4578-B294-4369-CA8C1DBF7E56} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{4BF6DEC9-51CC-4AE3-AB60-BDBA54330B83} = {0272AA50-4578-B294-4369-CA8C1DBF7E56}
 		{D6D1654F-A244-44A6-894F-B28B71EC6A16} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{E332865D-9958-445D-AE14-52D567067898} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal
