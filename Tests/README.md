@@ -19,8 +19,8 @@ Valheim 1.0.16 client (Steam build 25527674). `GameCompatibilityCheck` below als
 validates their Harmony targets and field-injection signatures on game Mono.
 This is not an in-game test or a full new-version compatibility audit.
 
-Remaining in-game checks, with `Learn Materials From Opened Containers` toggled
-from its default `Off` to `On`:
+Remaining in-game checks, with `Learn Materials From Opened Containers` set to
+`On` (the default for new configurations; existing saved settings are preserved):
 
 - Open a permitted chest containing unknown materials, equipment and a trophy;
   compare discoveries, trophy records, notifications and personal raid eligibility

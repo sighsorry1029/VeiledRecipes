@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.7
+
+- Enabled `Learn Materials From Opened Containers` by default for new configurations. Existing saved settings, including `Off`, remain unchanged.
+- Updated the configuration documentation and container-learning verification checklist to reflect the new default.
+- Updated the package's BepInEx dependency to 5.4.2360.
+
 ## 1.1.6
 
 - Added the server-synced `Learn Materials From Opened Containers` option, disabled by default. When enabled, items are discovered after a container's contents are displayed and when those contents change while open, without moving items or changing their quantities.

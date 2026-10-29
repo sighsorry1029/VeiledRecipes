@@ -2,7 +2,7 @@
 
 VeiledRecipes changes how Valheim presents unknown recipes and build pieces. Instead of keeping every undiscovered recipe completely invisible, it can show configurable masked previews: the player learns that something exists, while names, icons, descriptions, hidden materials, and hidden station requirements stay secret until the real unlock conditions are met.
 
-Unknown previews cannot be crafted or placed. An optional container-learning setting can discover items without picking them up; it is disabled by default and still respects station requirements.
+Unknown previews cannot be crafted or placed. Container learning is enabled by default and can discover items without picking them up; it still respects station requirements and can be disabled in the configuration.
 
 ![](https://i.ibb.co/fVF9LcWq/Screenshot-2026-05-21-215826.png) <br>
 Veiled recipes would be unlocked only when all the materials and station requirements were met. <br>
@@ -110,7 +110,7 @@ These options are synced through ServerSync when configuration locking is enable
 
 - `Learn Materials From Opened Containers`
   Learns items after an accessible container's contents are displayed, and when its contents change while open. Applies to items of any type, including equipment and trophies used as ingredients. Uses normal Valheim item discovery: recipes and pieces can unlock when their other requirements are met, trophy records are updated, and personal raid eligibility can change. Items and quantities are not moved or modified; pickup statistics and boss defeat keys are not granted. Learned knowledge stays on the character after closing the container, saving/rejoining, or turning the option off. Changing it to `On` also learns from a currently open container.
-  Default: `Off`
+  Default: `On` (existing saved settings are preserved)
 
 - `Recipe Preview Prefab Blacklist`
   Item prefab names whose unknown crafting recipe previews should never appear. This affects preview visibility only; unlocked recipes still appear normally.
