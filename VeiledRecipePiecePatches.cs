@@ -167,10 +167,10 @@ internal static class HudSetupPieceInfoPatch
     [HarmonyPriority(Priority.Last)]
     private static void Postfix(Hud __instance, Piece piece)
     {
-        TryMaskPieceInfo(__instance, Player.m_localPlayer, piece);
+        TryMaskPieceInfo(__instance, Player.m_localPlayer, piece, outsideSelection: false);
     }
 
-    internal static bool TryMaskPieceInfo(Hud hud, Player player, Piece piece)
+    internal static bool TryMaskPieceInfo(Hud hud, Player player, Piece piece, bool outsideSelection)
     {
         if (hud == null || piece == null || player == null)
         {
@@ -183,11 +183,11 @@ internal static class HudSetupPieceInfoPatch
             return false;
         }
 
-        MaskPieceInfo(hud, player, piece);
+        MaskPieceInfo(hud, player, piece, outsideSelection);
         return true;
     }
 
-    private static void MaskPieceInfo(Hud hud, Player player, Piece piece)
+    private static void MaskPieceInfo(Hud hud, Player player, Piece piece, bool outsideSelection)
     {
         hud.m_buildSelection.text = VeiledRecipeState.UnknownNameText;
         hud.m_pieceDescription.text = VeiledRecipeState.UnknownDescriptionText;
@@ -197,8 +197,9 @@ internal static class HudSetupPieceInfoPatch
         hud.m_snappingIcon.enabled = false;
 
         int slot = 0;
-        foreach (Piece.Requirement requirement in piece.m_resources)
+        for (int index = 0; index < piece.m_resources.Length; ++index)
         {
+            Piece.Requirement requirement = piece.m_resources[index];
             if (slot >= hud.m_requirementItems.Length)
             {
                 break;
@@ -210,7 +211,10 @@ internal static class HudSetupPieceInfoPatch
             }
 
             hud.m_requirementItems[slot].SetActive(true);
-            VeiledRecipeRequirementUi.SetupRequirement(hud.m_requirementItems[slot].transform, requirement, player, piece.FreeBuildKey() == GlobalKeys.NoCraftCost, 0);
+            var root = hud.m_requirementItems[slot].transform;
+            // CraftFrom's native row patch already formats known rows during SetupPieceInfo.
+            if (VeiledRecipeRequirementUi.SetupKnownOrMasked(root, requirement, player, piece.FreeBuildKey() == GlobalKeys.NoCraftCost, 0) && outsideSelection)
+                VeiledRecipeCraftFromCompat.ShowPiece(root, player, piece, index);
             slot++;
         }
 
@@ -248,7 +252,7 @@ internal static class HudUpdateBuildMaskPieceInfoPatch
 
         if (piece)
         {
-            HudSetupPieceInfoPatch.TryMaskPieceInfo(__instance, player, piece);
+            HudSetupPieceInfoPatch.TryMaskPieceInfo(__instance, player, piece, outsideSelection: true);
         }
     }
 }

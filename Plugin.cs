@@ -11,6 +11,7 @@ namespace VeiledRecipes;
 
 [BepInPlugin(ModGUID, ModName, ModVersion)]
 [BepInDependency(VeiledRecipeAaaCraftingCompat.PluginGuid, BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(VeiledRecipeCraftFromCompat.PluginGuid, BepInDependency.DependencyFlags.SoftDependency)]
 public class VeiledRecipesPlugin : BaseUnityPlugin
 {
     internal const string ModName = "VeiledRecipes";
@@ -68,6 +69,7 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
             _harmony.PatchAll(assembly);
             VeiledRecipeContainerDiscoveryPatch.Start();
             VeiledRecipeAaaCraftingCompat.Initialize();
+            VeiledRecipeCraftFromCompat.Initialize();
             Config.SettingChanged += OnSettingChanged;
             SetupWatcher();
 
@@ -90,6 +92,7 @@ public class VeiledRecipesPlugin : BaseUnityPlugin
         finally
         {
             VeiledRecipeContainerDiscoveryPatch.Stop();
+            VeiledRecipeCraftFromCompat.Shutdown();
             _watcher?.Dispose();
         }
     }

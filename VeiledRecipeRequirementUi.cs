@@ -6,21 +6,21 @@ namespace VeiledRecipes;
 
 internal static class VeiledRecipeRequirementUi
 {
-    internal static void SetupRequirement(Transform root, Piece.Requirement? requirement, Player player, bool craft, int quality, int multiplier = 1)
+    internal static bool SetupKnownOrMasked(Transform root, Piece.Requirement? requirement, Player player, bool craft, int quality, int multiplier = 1)
     {
         if (requirement == null || requirement.m_resItem == null || requirement.GetAmount(quality) <= 0)
         {
             InventoryGui.HideRequirement(root);
-            return;
+            return false;
         }
 
         if (VeiledRecipeState.IsMaterialKnown(player, requirement))
         {
-            InventoryGui.SetupRequirement(root, requirement, player, craft, quality, multiplier);
-            return;
+            return InventoryGui.SetupRequirement(root, requirement, player, craft, quality, multiplier);
         }
 
         SetupMaskedRequirement(root, requirement);
+        return false;
     }
 
     internal static void SetupMaskedRequirement(Transform root, Piece.Requirement requirement)

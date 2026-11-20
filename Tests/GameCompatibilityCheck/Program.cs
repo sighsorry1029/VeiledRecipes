@@ -57,6 +57,46 @@ internal static class Program
         Check(!(bool)pairApi.Invoke(null, new object[] { FakeUnity<Player>(), pair })!, "private RecipeDataPair getter executes on original game type");
         CheckIngredients();
         CheckPieceInsertion();
+        CheckCraftFrom();
+    }
+
+    private static void CheckCraftFrom()
+    {
+        var adapter = plugin.GetType("VeiledRecipes.VeiledRecipeCraftFromCompat", true)!;
+        var bind = AccessTools.Method(adapter, "BindApi");
+        var recipeField = AccessTools.Field(adapter, "recipeQuote");
+        var pieceField = AccessTools.Field(adapter, "pieceQuote");
+        string? provider = Environment.GetEnvironmentVariable("VEILED_TEST_CRAFTFROM_DLL");
+        if (!string.IsNullOrEmpty(provider))
+        {
+            bind.Invoke(null, new object[] { Assembly.LoadFrom(provider).GetType("CraftFrom.API", true)! });
+            Check(recipeField.GetValue(null) is Delegate && pieceField.GetValue(null) is Delegate,
+                "both exact delegates bind to the supplied CraftFrom DLL");
+        }
+        bind.Invoke(null, new object[] { typeof(RecipeOnlyApi) });
+        Check(recipeField.GetValue(null) is Delegate && pieceField.GetValue(null) == null,
+            "a recipe-only API leaves piece rendering native");
+        var upgrade = Item("equipment").m_itemData;
+        AccessTools.Method(adapter, "ShowRecipe").Invoke(null, new object?[] { null, FakeUnity<Player>(), FakeUnity<Recipe>(), upgrade, 3, 2, 7 });
+        Check(ReferenceEquals(RecipeOnlyApi.Target, upgrade) && RecipeOnlyApi.Quality == 3 &&
+            RecipeOnlyApi.Multiplier == 2 && RecipeOnlyApi.Index == 7,
+            "quote receives the selected upgrade, quality, multiplier, and original index rather than the visible slot");
+        AccessTools.Method(adapter, "Shutdown").Invoke(null, null);
+        Check(recipeField.GetValue(null) == null && pieceField.GetValue(null) == null, "shutdown removes both quote delegates");
+    }
+
+    private static class RecipeOnlyApi
+    {
+        internal static ItemDrop.ItemData? Target;
+        internal static int Quality, Multiplier, Index;
+        public static bool TryGetRecipeRequirement(Player player, Recipe recipe, ItemDrop.ItemData upgrade, int quality,
+            int multiplier, int index, out int available, out int needed, out bool unselected)
+        {
+            Target = upgrade; Quality = quality; Multiplier = multiplier; Index = index;
+            available = needed = 0;
+            unselected = false;
+            return false;
+        }
     }
 
     private static void CheckPatches()

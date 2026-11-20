@@ -288,8 +288,9 @@ internal static class InventoryGuiUpdateRecipePatch
             }
 
             int start = VeiledRecipeRequirementUi.GetCyclingStart(requirementCount, gui.m_recipeRequirementList.Length);
-            foreach (Piece.Requirement requirement in requirements)
+            for (int index = 0; index < requirements.Length; ++index)
             {
+                Piece.Requirement requirement = requirements[index];
                 if (slot >= gui.m_recipeRequirementList.Length)
                 {
                     break;
@@ -306,7 +307,9 @@ internal static class InventoryGuiUpdateRecipePatch
                     continue;
                 }
 
-                VeiledRecipeRequirementUi.SetupRequirement(gui.m_recipeRequirementList[slot].transform, requirement, player, craft: true, quality, craftMultiplier);
+                var root = gui.m_recipeRequirementList[slot].transform;
+                if (VeiledRecipeRequirementUi.SetupKnownOrMasked(root, requirement, player, craft: true, quality, craftMultiplier))
+                    VeiledRecipeCraftFromCompat.ShowRecipe(root, player, recipe, gui.m_selectedRecipe.ItemData, quality, craftMultiplier, index);
                 slot++;
             }
         }
