@@ -1,265 +1,54 @@
 # VeiledRecipes
 
-VeiledRecipes changes how Valheim presents unknown recipes and build pieces. Instead of keeping every undiscovered recipe completely invisible, it can show configurable masked previews: the player learns that something exists, while names, icons, descriptions, hidden materials, and hidden station requirements stay secret until the real unlock conditions are met.
+See undiscovered crafting recipes and build pieces as masked previews. Learn their materials and meet the configured station requirements to reveal them; unknown entries cannot be crafted or placed.
 
-Unknown previews cannot be crafted or placed. Container learning is enabled by default and can discover items without picking them up; it still respects station requirements and can be disabled in the configuration.
+![Crafting preview with a silhouette and hidden recipe details](https://i.ibb.co/fVF9LcWq/Screenshot-2026-05-21-215826.png)
 
-![](https://i.ibb.co/fVF9LcWq/Screenshot-2026-05-21-215826.png) <br>
-Veiled recipes would be unlocked only when all the materials and station requirements were met. <br>
-The stations are unlocked only when the player interacts with them by default. <br>
+Known ingredients stay visible while undiscovered details remain hidden.
 
-![](https://i.ibb.co/chcXxxgp/Screenshot-2026-05-21-221859.png) <br>
-By default, veiled recipes are grouped below known recipes. <br>
+![Unknown recipes grouped below known recipes](https://i.ibb.co/chcXxxgp/Screenshot-2026-05-21-221859.png)
 
-![](https://i.ibb.co/tMV4ryLM/Screenshot-2026-05-21-221754.png) <br>
-By default, even veiled recipes are not shown when crafting station level is not met.
+Known recipes appear first by default.
 
-![](https://i.ibb.co/Z1tWJtG2/Screenshot-2026-05-21-214653.png) <br>
-InventorySlots mod is compatible with VeiledRecipes. Check it out! <br>
-https://thunderstore.io/c/valheim/p/sighsorry/InventorySlots/
+![Crafting previews limited by the current station level](https://i.ibb.co/tMV4ryLM/Screenshot-2026-05-21-221754.png)
 
-![](https://i.ibb.co/5XDR5gkR/Screenshot-2026-05-21-215857.png)
-Piece recipes are also veiled. <br>
-By default, players don't have to interact with the crafting station to unlock the piece recipes. <br>
+By default, previews appear only when the current station meets the required level.
 
-## Strengths
+![VeiledRecipes used alongside InventorySlots](https://i.ibb.co/Z1tWJtG2/Screenshot-2026-05-21-214653.png)
 
-- Shows discovery progress without spoiling full recipes.
-- Keeps Valheim's actual recipe and piece unlock rules intact.
-- Masks crafting recipes, build pieces, item icons, descriptions, requirements, station levels, tooltips, and pinned tooltip content where supported.
-- Reveals known materials and station information gradually.
-- Blocks crafting and placement for entries that are only previews.
-- Supports strict station discovery rules for recipe unlocks.
-- Preserves recipe-less upgrade, socketing, and runtime build workflows added by other mods.
-- Provides server-synced blacklist controls for item outputs, build pieces, and requirement ingredients.
-- Offers client-side options for recipe grouping and noisy notifications.
-- Exposes a compatibility API for custom crafting UI mods.
+Masked previews alongside InventorySlots.
 
-## Crafting Recipe Previews
+![Unknown build piece with masked details and requirements](https://i.ibb.co/5XDR5gkR/Screenshot-2026-05-21-215857.png)
 
-When a crafting recipe is visible only as an unknown preview:
+Build pieces use silhouettes and hide unknown requirements too.
 
-- The recipe list icon is rendered as a black silhouette.
-- The recipe name is replaced by `Unknown Name Text`.
-- The selected recipe icon is rendered as a black silhouette.
-- The recipe description is replaced by `Unknown Description Text`.
-- Unknown requirement names and amounts are replaced by `Unknown Requirement Text`.
-- Unknown station level text is replaced by `Unknown Requirement Text`.
-- Requirements the player already knows are shown normally.
-- The craft button is disabled and crafting is blocked.
+## Getting started
 
-Recipe previews can be grouped below actually unlocked recipes so normal crafting remains easy to scan.
+Install with your mod manager and the required BepInEx dependency. For shared multiplayer settings, install VeiledRecipes on the server or host and on each player's client.
 
-## Build Piece Previews
+Launch once to create `BepInEx/config/sighsorry.VeiledRecipes.cfg`. Existing saved settings are preserved when updating.
 
-Unknown build pieces can appear in hammer/build-piece tables as masked entries.
+## Settings
 
-Until the piece is actually unlocked:
+**Station discovery:** By default, recipes that need a crafting station require interaction with that station at the required level before unlocking. Build pieces use normal station knowledge, so walking near a station is enough to discover it. Unknown build-piece previews also require any needed station to be known by default. Adjust `Require Station Interaction For Recipe Unlock` and `Enable Station Proximity Discovery` to change discovery behavior.
 
-- The piece icon is rendered as a black silhouette.
-- The piece name and description are hidden.
-- Unknown requirements are masked.
-- The placement ghost is blocked.
-- Placement is denied with Valheim's missing requirement message.
+**Container learning:** `Learn Materials From Opened Containers` is **On** by default. Opening an accessible container discovers its displayed items without moving them, including equipment and trophies. Station requirements still apply. This uses normal item discovery, so it also updates trophy records and can affect personal raid eligibility. Turning it off does not erase knowledge already learned.
 
-Once Valheim considers the piece known, VeiledRecipes stops masking it.
+You can also:
 
-## Recipe-Less Mod Workflows
+- Toggle crafting and build previews, change placeholder text, or exclude previews by item, piece, or ingredient prefab name. Blacklists affect unknown previews only.
+- Change recipe grouping and notifications. Recipe unlock and skill notifications are on by default; build-piece and dish unlock notifications are off.
 
-Some mods let players upgrade or socket loot-only items without providing an unlockable crafting recipe. VeiledRecipes leaves these owned-item operations unmasked when no enabled or currently seasonal ObjectDB recipe can be learned for that item. A recipe-less entry without an existing target item is still treated as crafting and remains blocked, so this exception does not create a free crafting path.
+Gameplay settings and placeholder text sync from the server and are locked to admins by default. Grouping and notification settings are personal to each client. The generated config describes every option.
 
-Runtime pieces that are not registered in a regular `PieceTable.m_pieces` list, such as generated blueprint proxies, are also left unmasked. Regular registered build pieces continue to follow normal knowledge and preview rules.
+## Compatibility
 
-## Station Discovery
+- **AAA Crafting:** Built-in support masks unknown recipes in list/grid views and tooltips, and hides them from the recipe tracker. Preview grouping also applies to its recipe pages.
+- **CraftFrom:** Discovered ingredients show CraftFrom's available and required amounts in masked previews. Unknown ingredients stay hidden.
+- **[InventorySlots](https://thunderstore.io/c/valheim/p/sighsorry/InventorySlots/):** Can be used alongside VeiledRecipes, as shown above.
+- **InfinityHammer:** Tool and generated-piece workflows remain usable. Normal registered build pieces still follow discovery rules.
+- **Recipe-less upgrades and sockets:** Operations on an existing item remain unmasked when that item has no learnable crafting recipe.
 
-Valheim normally discovers crafting stations when the player walks close enough to them. That station awareness can affect recipe and piece unlocks.
+Other custom crafting panels may need their own integration. ZenUI's custom panels are not covered by the AAA integration.
 
-VeiledRecipes separates two concepts:
-
-- `Require Station Interaction For Recipe Unlock` controls whether station-gated crafting recipes require direct interaction with the required station level before the recipe can truly unlock.
-- `Enable Station Proximity Discovery` controls whether walking near a crafting station discovers it through Valheim's normal proximity behavior.
-
-Build pieces use Valheim's normal station awareness. If proximity discovery is enabled, walking near a station can help piece unlocks. If proximity discovery is disabled, interacting with the station is required before that station is known.
-
-## Server-Synced Config
-
-These options are synced through ServerSync when configuration locking is enabled.
-
-- `Lock Configuration`
-  Locks synced config so only the server/admin config controls gameplay behavior.
-
-- `Show Unknown Crafting Recipes`
-  Enables masked crafting recipe previews at relevant crafting stations.
-  Default: `On`
-
-- `Show Unknown Build Pieces`
-  Enables masked build-piece previews in build-piece tables.
-  Default: `On`
-
-- `Require Station Level For Unknown Crafting Recipes`
-  If enabled, unknown crafting recipe previews only appear when the current crafting station meets the required station level. A forge level 2 recipe will not appear at a forge level 1 unless it is already truly unlocked.
-  Default: `On`
-
-- `Require Station Interaction For Recipe Unlock`
-  If enabled, station-gated crafting recipes unlock only after the player has interacted with the required crafting station level. If disabled, recipe station knowledge follows Valheim's normal known station behavior.
-  Default: `On`
-
-- `Enable Station Proximity Discovery`
-  If enabled, walking near a crafting station discovers it normally. If disabled, proximity discovery is blocked and station knowledge requires interaction.
-  Default: `On`
-
-- `Learn Materials From Opened Containers`
-  Learns items after an accessible container's contents are displayed, and when its contents change while open. Applies to items of any type, including equipment and trophies used as ingredients. Uses normal Valheim item discovery: recipes and pieces can unlock when their other requirements are met, trophy records are updated, and personal raid eligibility can change. Items and quantities are not moved or modified; pickup statistics and boss defeat keys are not granted. Learned knowledge stays on the character after closing the container, saving/rejoining, or turning the option off. Changing it to `On` also learns from a currently open container.
-  Default: `On` (existing saved settings are preserved)
-
-- `Recipe Preview Prefab Blacklist`
-  Item prefab names whose unknown crafting recipe previews should never appear. This affects preview visibility only; unlocked recipes still appear normally.
-  Default: empty
-
-- `Piece Preview Prefab Blacklist`
-  Piece prefab names whose unknown build-piece previews should never appear. This affects preview visibility only; unlocked pieces still appear normally.
-  Default: empty
-
-- `Requirement Preview Prefab Blacklist`
-  Ingredient/resource prefab names that prevent unknown previews from appearing for any recipe or piece that requires them. This is useful for cheat, admin, or hidden resource prefabs.
-  Default: `SwordCheat, SledgeCheat`
-
-- `Unknown Name Text`
-  Text shown when a recipe, piece, material, or station name is hidden.
-  Default: `???`
-
-- `Unknown Description Text`
-  Text shown when a recipe or piece description is hidden.
-  Default: `Not enough info`
-
-- `Unknown Requirement Text`
-  Text shown when an amount or station level is hidden.
-  Default: `?`
-
-## Client-Side Config
-
-These options are not synced. Each player can choose their own client behavior.
-
-- `Group Unknown Recipe Previews Below Known Recipes`
-  Groups masked crafting recipe previews below actually unlocked recipes in crafting station recipe lists.
-  Default: `true`
-
-- `Show Recipe Unlock Notifications`
-  Shows or hides Valheim's recipe unlock popup.
-  Default: `true`
-
-- `Show Piece Unlock Notifications`
-  Shows or hides Valheim's build piece and dish unlock popup.
-  Default: `false`
-
-- `Show Skill Level Up Notification/Effect`
-  Shows or hides skill level-up messages and VFX/SFX, including the first time a skill reaches level 1.
-  Default: `true`
-
-## Blacklist Format
-
-All prefab blacklist entries are case-insensitive. Whitespace is trimmed, and a trailing `(Clone)` suffix is ignored.
-
-Entries can be separated by commas, semicolons, pipes, or line breaks.
-
-Output blacklists match the item or piece being previewed:
-
-```text
-ArmorIronLegs, SwordIron
-```
-
-```text
-piece_workbench_ext1
-piece_chest
-```
-
-The requirement blacklist matches ingredient/resource prefabs used by the recipe or piece:
-
-```text
-SwordCheat, SledgeCheat
-```
-
-## AAA Crafting Compatibility
-
-Built-in support for AzuAntiArthriticCrafting activates automatically when that mod is installed. No AAA DLL changes or additional configuration are required.
-
-- Unknown recipes stay masked in AAA's list and grid layouts, including names, icons, output counts, and hover tooltips.
-- Hover tooltips return to their normal content when the recipe is learned or a vanilla global/no-cost unlock becomes active.
-- Unknown recipes cannot be added to AAA's recipe tracker. Already tracked recipes are temporarily hidden while recipe knowledge is required, without removing the tracked entries.
-- Known recipes and recipe-less upgrade/socket targets retain their existing behavior. With `Group Unknown Recipe Previews Below Known Recipes` enabled, previews are grouped after known recipes across the entire filtered list before AAA splits it into pages, in both craft and upgrade views. AAA's original order is preserved within each group.
-- Grouping uses current recipe knowledge whenever a page is generated, including cached page changes. Disabling the option restores AAA's original order without changing its cache or filtering rules. Unsupported AAA pagination changes fall back to page-local grouping with a log warning.
-
-This integration does not change AAA's search/filter rules and does not add built-in support for ZenUI's custom panels.
-
-## Compatibility API
-
-VeiledRecipes patches Valheim's vanilla crafting and build-piece UI. Mods that draw their own recipe UI may need to call the public API and mask their own controls.
-
-Use the `ShouldMask*` methods for display and action decisions. `IsRecipeActuallyKnown` and `IsPieceActuallyKnown` report player knowledge, while `ShouldMaskRecipePair` also considers the pair's target item so recipe-less upgrade and socket operations are handled correctly.
-
-API type:
-
-```csharp
-VeiledRecipes.VeiledRecipesCompat
-```
-
-Useful members include:
-
-- `PluginGuid`
-- `PluginName`
-- `PluginVersion`
-- `Author`
-- `UnknownNameText`
-- `UnknownDescriptionText`
-- `UnknownRequirementText`
-- `GroupUnknownRecipePreviewsBelowKnownRecipes`
-- `IsAdminBypassActive` (legacy compatibility member; always `false`)
-- `GetRecipeVisibilityState(recipe)`
-- `GetRecipeVisibilityState(player, recipe)`
-- `IsUnknownRecipePreview(recipe)`
-- `IsUnknownRecipePreview(player, recipe)`
-- `ShouldMaskRecipe(recipe)`
-- `ShouldMaskRecipe(player, recipe)`
-- `ShouldMaskRecipePair(pair)`
-- `ShouldMaskRecipePair(player, pair)`
-- `IsRecipeActuallyKnown(player, recipe)`
-- `ShouldMaskPiece(piece)`
-- `ShouldMaskPiece(player, piece)`
-- `IsPieceActuallyKnown(player, piece)`
-- `IsMaterialKnown(requirement)`
-- `IsMaterialKnown(player, requirement)`
-- `KnowsRecipeStationRequirement(recipe, quality)`
-- `KnowsRecipeStationRequirement(player, recipe, quality)`
-- `KnowsPieceStationRequirement(piece)`
-- `KnowsPieceStationRequirement(player, piece)`
-- `RegisterKnownPieceOverride(predicate)` / `UnregisterKnownPieceOverride(predicate)`
-- `RegisterKnownPiecePrefabOverride(prefabName)` / `UnregisterKnownPiecePrefabOverride(prefabName)`
-- `RegisterKnownPieceTypeOverride(typeName)` / `UnregisterKnownPieceTypeOverride(typeName)`
-
-Soft dependency GUID:
-
-```text
-sighsorry.VeiledRecipes
-```
-
-## Git
-
-https://github.com/sighsorry1029/VeiledRecipes
-
-## Building
-
-Normal Debug and Release builds do not copy the DLL into the live Valheim installation. To opt into local deployment, pass the `DeployToGame` MSBuild property:
-
-```powershell
-dotnet build .\VeiledRecipes.csproj -c Debug -p:DeployToGame=true
-```
-
-Release builds still create the Thunderstore and Nexus zip packages normally.
-
-The solution also builds the compatibility test runner. Run its managed regression checks explicitly:
-
-```powershell
-dotnet build Tests/AaaCompatibility.Tests.csproj -c Release -t:Check
-```
-
-See [Tests/README.md](Tests/README.md) for optional AAA DLL contract checks and the separate in-game verification checklist.
+[GitHub repository](https://github.com/sighsorry1029/VeiledRecipes)

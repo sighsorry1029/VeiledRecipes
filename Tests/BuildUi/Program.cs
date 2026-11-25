@@ -29,12 +29,15 @@ internal static class Program
         Check(piece.m_name == "Secret Chair" && secret.m_resItem.m_itemData.m_shared.m_name == "Secret Material", "prefab data remains unchanged");
         ui.Button.Setup(piece, ui);
         Check(Localization.OnLanguageChange!.GetInvocationList().Length == 1, "pooled Setup does not duplicate language subscriptions");
+        ui.Button.LocalizedSearchTerms.Clear();
+        Localization.OnLanguageChange.Invoke();
+        Check(ui.Button.LocalizedSearchTerms.SequenceEqual(new[] { "???", "wood" }), "pooled Setup preserves the native language subscription and masked search refresh");
         var other = new Piece { m_name = "Known Chair" };
         player.Recipes.Add(other.m_name);
         var freshKnownButton = new BuildUiPieceButton();
         freshKnownButton.Setup(other, ui);
         Check(freshKnownButton.GetComponent<VeiledBuildPieceIconGuard>() == null, "known button does not allocate an unused silhouette layer");
-        Localization.OnLanguageChange -= freshKnownButton.RefreshSearchTerm;
+        freshKnownButton.Destroy();
         player.HasRequirements = false; ui.Button.Setup(other, ui);
         Check(ui.Button.Icon.enabled && !ui.Button.Guard.Veil!.gameObject.activeSelf && ui.Button.Icon.color == UnityEngine.Color.grey && !ui.Button.Upgrade.gameObject.activeSelf, "known piece without materials restores the original grey icon");
         Check(ui.Button.LocalizedSearchTerms.SequenceEqual(new[] { "knownchair" }), "pool reuse clears previous masked search terms");
@@ -81,15 +84,25 @@ internal static class Program
         Check(table.m_availablePieces.Count == 1, "re-enabling previews restores entries");
         Check(ui.SelectedTag == 42 && ui.Search == "wood" && ui.Favorites.SetEquals(new[] { "saved favorite" }), "refresh keeps tag/search/favorite data");
         refreshes = ui.Refreshes;
-        ui.gameObject.SetActive(false); player.Materials.Clear(); Tick(ui);
+        ui.SetActive(false); Tick(ui);
+        ui.SetActive(true); Tick(ui);
+        Check(ui.Refreshes == refreshes, "reopening unchanged UI preserves its snapshot without rebuilding");
+        for (int i = 0; i < 3; i++) { ui.SetActive(false); ui.SetActive(true); }
+        ui.Button.LocalizedSearchTerms.Clear();
+        Localization.OnLanguageChange.Invoke();
+        Check(Localization.OnLanguageChange.GetInvocationList().Length == 1 && ui.Button.LocalizedSearchTerms.Contains("hidden"), "repeated disable and enable preserve the button's single native language subscription");
+        ui.SetActive(false); player.Materials.Clear(); Tick(ui);
         Check(ui.Refreshes == refreshes, "closed menu does no refresh work");
-        ui.gameObject.SetActive(true); Tick(ui);
+        ui.SetActive(true); Tick(ui);
         Check(ui.Refreshes == refreshes + 1, "reopened menu catches pending knowledge changes");
         player.Stations["workbench"] = 1; Tick(ui); refreshes = ui.Refreshes;
         player.Stations["workbench"] = 2; Tick(ui);
         Check(ui.Refreshes == refreshes + 1, "station level change with unchanged count is detected");
         ui.AddPooledButton(piece);
         ui.CreateSpecial(piece);
+        ui.Button.LocalizedSearchTerms.Clear();
+        Localization.OnLanguageChange.Invoke();
+        Check(ui.Button.LocalizedSearchTerms.Contains("hidden"), "language changes still refresh reused buttons after knowledge and station changes");
         int listeners = Localization.OnLanguageChange!.GetInvocationList().Length;
         ui.ReplaceSpecial();
         Check(Localization.OnLanguageChange.GetInvocationList().Length == listeners - 1, "special-button destruction removes its language callback");
@@ -225,7 +238,13 @@ public class BuildUiPieceButton
     {
         m_imageColor = new ButtonImageColor(m_icon);
         gameObject.AddExisting(m_imageColor);
+        Awake();
     }
+    // Valheim 1.0.30 owns this subscription for the button's entire lifetime,
+    // including pooled/inactive periods; Setup no longer subscribes.
+    private void Awake() => Localization.OnLanguageChange += RefreshSearchTerm;
+    private void OnDestroy() => Localization.OnLanguageChange -= RefreshSearchTerm;
+    public void Destroy() => OnDestroy();
     public T? GetComponent<T>() where T : class => gameObject.GetComponent<T>();
     public T[] GetComponentsInChildren<T>(bool includeInactive) => gameObject.GetComponentsInChildren<T>(includeInactive);
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -233,7 +252,7 @@ public class BuildUiPieceButton
     {
         Piece = pieceInfo;
         m_upgradeArrow.gameObject.SetActive(Piece.m_isUpgrade);
-        RefreshSearchTerm(); Localization.OnLanguageChange += RefreshSearchTerm; UpdateRequirements();
+        RefreshSearchTerm(); UpdateRequirements();
     }
     [MethodImpl(MethodImplOptions.NoInlining)]
     public void UpdateRequirements() => m_icon.color = Player.m_localPlayer.HasRequirements ? UnityEngine.Color.white : UnityEngine.Color.grey;
@@ -293,14 +312,29 @@ public class BuildUi
         {
             Button.Setup(m_currentBuildTool.m_availablePieces.First(), this);
         }
+        m_specialPieceButton?.Destroy();
         m_specialPieceButton = null!;
     }
     public void ReplaceSpecial() => UpdatePieceButtons();
     public void CreateSpecial(Piece piece) { m_specialPieceButton = new BuildUiPieceButton(); m_specialPieceButton.Setup(piece, this); }
     public void AddPooledButton(Piece piece) { var button = new BuildUiPieceButton(); button.Setup(piece, this); m_pieceButtonPool.Push(button); }
-    public void Destroy() => OnDestroy();
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private void OnDestroy() { }
+    public void SetActive(bool active)
+    {
+        if (gameObject.activeSelf == active) return;
+        gameObject.SetActive(active);
+        if (active) OnEnable(); else OnDisable();
+    }
+    private void OnEnable() { }
+    private void OnDisable() { }
+    public void Destroy()
+    {
+        SetActive(false);
+        // Unity destroys children too; each button releases its own callback.
+        foreach (var button in m_pieceButtons) button.Destroy();
+        foreach (var button in m_pieceButtonPool) button.Destroy();
+        foreach (var button in m_previousPieceButtonsTemp) button.Destroy();
+        m_specialPieceButton?.Destroy();
+    }
 }
 namespace VeiledRecipes
 {

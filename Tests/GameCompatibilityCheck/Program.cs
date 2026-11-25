@@ -33,7 +33,7 @@ internal static class Program
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static void Run(string dll, string managed)
     {
-        foreach (string name in new[] { "assembly_valheim", "assembly_utils", "UnityEngine.CoreModule" })
+        foreach (string name in new[] { "assembly_valheim", "assembly_utils", "assembly_guiutils", "UnityEngine.CoreModule" })
             Check(string.Equals(Assembly.Load(name).Location, Path.Combine(managed, name + ".dll"), StringComparison.OrdinalIgnoreCase), "original runtime input: " + name);
 
         // Queue ServerSync startup work without executing it or constructing a Unity object.
@@ -47,6 +47,7 @@ internal static class Program
         PropertyInfo legacyAdminApi = plugin.GetType("VeiledRecipes.VeiledRecipesCompat", true)!.GetProperty("IsAdminBypassActive", BindingFlags.Public | BindingFlags.Static)!;
         Check(legacyAdminApi != null && !(bool)legacyAdminApi.GetValue(null), "legacy admin bypass API remains present and inactive");
         CheckPatches();
+        CheckBuildUiLifecycle();
         RuntimeHelpers.RunClassConstructor(plugin.GetType("VeiledRecipes.VeiledRecipeBuildUiRefreshPatch", true)!.TypeHandle);
         Check(true, "new cached private field and method delegates initialize against originals");
 
@@ -58,6 +59,30 @@ internal static class Program
         CheckIngredients();
         CheckPieceInsertion();
         CheckCraftFrom();
+    }
+
+    private static void CheckBuildUiLifecycle()
+    {
+        // Validate the native ownership that lets us omit the pre-1.0.30
+        // subscription repairs. These are original IL checks, not Unity execution.
+        Type button = typeof(BuildUiPieceButton);
+        FieldInfo languageEvent = AccessTools.Field(typeof(Localization), nameof(Localization.OnLanguageChange));
+        var awake = PatchProcessor.GetOriginalInstructions(AccessTools.DeclaredMethod(button, "Awake"));
+        var destroy = PatchProcessor.GetOriginalInstructions(AccessTools.DeclaredMethod(button, "OnDestroy"));
+        var setup = PatchProcessor.GetOriginalInstructions(AccessTools.DeclaredMethod(button, nameof(BuildUiPieceButton.Setup)));
+        Check(awake.Any(i => Equals(i.operand, languageEvent)) &&
+              awake.Any(i => i.operand is MethodInfo m && m.DeclaringType == typeof(Delegate) && m.Name == nameof(Delegate.Combine)),
+            "native button Awake owns the language subscription");
+        Check(destroy.Any(i => Equals(i.operand, languageEvent)) &&
+              destroy.Any(i => i.operand is MethodInfo m && m.DeclaringType == typeof(Delegate) && m.Name == nameof(Delegate.Remove)),
+            "native button OnDestroy releases the language subscription");
+        Check(!setup.Any(i => Equals(i.operand, languageEvent)), "native pooled Setup does not resubscribe");
+        foreach (string callback in new[] { "OnEnable", "OnDisable" })
+        {
+            MethodInfo method = AccessTools.DeclaredMethod(typeof(BuildUi), callback);
+            Check(method != null && method.IsPrivate && method.GetParameters().Length == 0,
+                "native BuildUi lifecycle callback: " + callback);
+        }
     }
 
     private static void CheckCraftFrom()

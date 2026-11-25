@@ -8,17 +8,6 @@ using UnityEngine.UI;
 
 namespace VeiledRecipes;
 
-[HarmonyPatch(typeof(BuildUiPieceButton), nameof(BuildUiPieceButton.Setup))]
-internal static class BuildUiPieceSetupPatch
-{
-    private static void Prefix(BuildUiPieceButton __instance)
-    {
-        // The vanilla pool calls Setup repeatedly, and Setup subscribes every time.
-        // Our state refresh must not multiply those subscriptions.
-        Localization.OnLanguageChange -= __instance.RefreshSearchTerm;
-    }
-}
-
 [HarmonyPatch(typeof(BuildUiPieceButton), nameof(BuildUiPieceButton.UpdateRequirements))]
 internal static class BuildUiPieceRequirementsPatch
 {
@@ -172,8 +161,6 @@ internal static class VeiledRecipeBuildUiRefreshPatch
         RefreshGhost(player);
     }
 
-    internal static void Forget(BuildUi ui) => Snapshots.Remove(ui);
-
     private sealed class Snapshot
     {
         public Snapshot() { }
@@ -195,31 +182,4 @@ internal static class VeiledRecipeBuildUiRefreshPatch
             return true;
         }
     }
-}
-
-[HarmonyPatch(typeof(BuildUi), "OnDestroy")]
-internal static class BuildUiDestroyPatch
-{
-    private static void Prefix(BuildUi __instance, List<BuildUiPieceButton> ___m_pieceButtons,
-        Stack<BuildUiPieceButton> ___m_pieceButtonPool, Stack<BuildUiPieceButton> ___m_previousPieceButtonsTemp,
-        BuildUiPieceButton ___m_specialPieceButton)
-    {
-        VeiledRecipeBuildUiRefreshPatch.Forget(__instance);
-        foreach (BuildUiPieceButton button in ___m_pieceButtons) Unsubscribe(button);
-        foreach (BuildUiPieceButton button in ___m_pieceButtonPool) Unsubscribe(button);
-        foreach (BuildUiPieceButton button in ___m_previousPieceButtonsTemp) Unsubscribe(button);
-        Unsubscribe(___m_specialPieceButton);
-    }
-
-    internal static void Unsubscribe(BuildUiPieceButton button)
-    {
-        if (button != null) Localization.OnLanguageChange -= button.RefreshSearchTerm;
-    }
-}
-
-[HarmonyPatch(typeof(BuildUi), "UpdatePieceButtons")]
-internal static class BuildUiSpecialPieceCleanupPatch
-{
-    // Vanilla destroys/recreates the repair/remove button instead of pooling it.
-    private static void Prefix(BuildUiPieceButton ___m_specialPieceButton) => BuildUiDestroyPatch.Unsubscribe(___m_specialPieceButton);
 }

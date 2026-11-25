@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.8
+
+- Updated for Valheim 1.0.30, including the build menu's new event lifecycle. Removed obsolete hooks that could prevent Harmony initialization or detach language updates from pooled piece buttons.
+- Added CraftFrom integration so discovered ingredients show its available and required amounts in masked recipe and build previews. Unknown ingredients remain hidden.
+- Expanded build-menu regression checks and verified Harmony targets and managed access paths against original 1.0.30 client and dedicated-server assemblies.
+- Simplified the README while preserving all five screenshots and clarifying station discovery, container learning, and optional integrations.
+
 ## 1.1.7
 
 - Enabled `Learn Materials From Opened Containers` by default for new configurations. Existing saved settings, including `Off`, remain unchanged.

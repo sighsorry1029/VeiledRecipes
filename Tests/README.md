@@ -1,5 +1,18 @@
 # Compatibility checks
 
+The current build target is Valheim **1.0.30**, Windows x64 client build
+26870846 and dedicated-server build 26870897. See
+[the compatibility record](../docs/valheim-1.0.30.md) for the original inputs,
+removed legacy UI patches, results, and remaining in-game checks.
+
+`environment.props` selects the preserved 1.0.30 client through
+`ValheimReferencePath`. Override that property with another original 1.0.30
+client directory when needed. `ValheimGamePath` remains the local BepInEx and
+deployment location; changing compile references does not update the game.
+If the snapshot directory is absent, the existing project fallback can use the
+installed game. Check the resolved `CorlibPath` before treating that build as
+1.0.30 validation.
+
 ## Opened-container learning
 
 ```powershell
@@ -14,10 +27,9 @@ scan, live toggles, container/player/GUI replacement, close/destroy/shutdown
 cleanup, and unchanged item references, stacks and pickup flags. It does not
 simulate native access checks, trophy/raid logic, persistence or networking.
 
-The hooks and public discovery APIs were checked against the preserved original
-Valheim 1.0.16 client (Steam build 25527674). `GameCompatibilityCheck` below also
-validates their Harmony targets and field-injection signatures on game Mono.
-This is not an in-game test or a full new-version compatibility audit.
+The hooks and public discovery APIs were originally checked against Valheim
+1.0.16. They have also passed `GameCompatibilityCheck` against the preserved
+original 1.0.30 client and server on game Mono. This is not an in-game test.
 
 Remaining in-game checks, with `Learn Materials From Opened Containers` set to
 `On` (the default for new configurations; existing saved settings are preserved):
@@ -34,7 +46,7 @@ Remaining in-game checks, with `Learn Materials From Opened Containers` set to
 - Verify server-synced configuration on a dedicated server and multiple clients,
   plus native and modded container UI. No extra RPC or owner/access override is used.
 
-## Valheim 1.0.12
+## Valheim 1.0.30
 
 Build the plugin and test runners, and deploy only the merged plugin:
 
@@ -42,25 +54,31 @@ Build the plugin and test runners, and deploy only the merged plugin:
 dotnet build VeiledRecipes.sln -c Debug -p:DeployToGame=true
 dotnet msbuild Tests/BuildUi/BuildUi.Tests.csproj -t:Check -p:Configuration=Debug -nologo
 dotnet msbuild Tests/AaaCompatibility.Tests.csproj -t:Check -p:Configuration=Debug -nologo
-python Tests/GameCompatibilityCheck/run_mono.py 'C:/Program Files (x86)/Steam/steamapps/common/Valheim' bin/Debug/VeiledRecipes.dll 'C:/Program Files (x86)/Steam/steamapps/common/Valheim/BepInEx/core'
+$client = "$env:USERPROFILE/.codex/references/valheim/snapshots/client-b26870846-windows-x64-20261125T102540Z/original"
+python Tests/GameCompatibilityCheck/run_mono.py $client bin/Debug/VeiledRecipes.dll 'C:/Program Files (x86)/Steam/steamapps/common/Valheim/BepInEx/core'
 ```
 
 For the dedicated-server check, replace the first Python argument with its
 preserved snapshot `original` directory (containing `valheim_server_Data` and
 `MonoBleedingEdge`). Use a 64-bit Python installation matching the Windows Mono
-library. The runner automatically finds the original Managed directory. It
-fails if runtime game assemblies resolve somewhere else.
+library. The 1.0.30 server snapshot is
+`dedicated-server-b26870897-windows-x64-20261125T102540Z-depot-restored/original`
+under the same snapshots directory. The runner automatically finds the original
+Managed directory and fails if runtime game assemblies resolve somewhere else.
 
 Build UI checks link the production patches and real Harmony against managed
-UI doubles. They cover state refresh and event lifetime, not real rendering.
+UI doubles. They cover state refresh, repeated enable/disable, and the 1.0.30
+button-owned Awake/OnDestroy language subscription, not real rendering.
 GameCompatibilityCheck compiles against original game DLLs without publicizing.
 It executes managed paths on the game's Mono and validates Harmony declarations,
 but does not install native detours or start a Unity scene. Its two native
 initializer stubs and queued ServerSync startup are not game behavior tests.
+The runner also inspects original button IL to check that Awake subscribes,
+OnDestroy unsubscribes, and pooled Setup does not resubscribe.
 Neither suite exercises a network session. See
 [the Valheim 1.0.7 compatibility record](../docs/valheim-1.0.7.md) for the
-previous migration baseline; the current 1.0.12 material-discovery cases are
-checked by `GameCompatibilityCheck` above.
+previous migration baseline. The material-discovery cases introduced for 1.0.12
+remain in `GameCompatibilityCheck` and pass against the 1.0.30 originals.
 
 ## AAA Compatibility Checks
 
